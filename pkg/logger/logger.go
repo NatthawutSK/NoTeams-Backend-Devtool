@@ -14,8 +14,6 @@ import (
 type IRiLogger interface {
 	Print() IRiLogger
 	Save()
-	setQuery(c *fiber.Ctx)
-	setBody(c *fiber.Ctx)
 	setResponse(res any)
 }
 
@@ -25,8 +23,6 @@ type RiLogger struct {
 	Method     string `json:"method"`
 	StatusCode int    `json:"status_code"`
 	Path       string `json:"path"`
-	Query      any    `json:"query"`
-	Body       any    `json:"body"`
 	Response   any    `json:"response"`
 }
 
@@ -38,20 +34,18 @@ func InitRiLogger(c *fiber.Ctx, res any) IRiLogger {
 		Path:       c.Path(),
 		StatusCode: c.Response().StatusCode(),
 	}
-	log.setQuery(c)
-	log.setBody(c)
 	log.setResponse(res)
 	return log
 }
 
-// Print implements IRiLogger.
+// เพื่อ print log ออกทาง console
 func (l *RiLogger) Print() IRiLogger {
 	utils.Debug(l)
 	return l
 
 }
 
-// Save implements IRiLogger.
+// เพื่อบันทึก log ลงในไฟล์
 func (l *RiLogger) Save() {
 	data := utils.Output(l)
 
@@ -65,32 +59,7 @@ func (l *RiLogger) Save() {
 	file.WriteString(string(data) + "\n")
 }
 
-// setBody implements IRiLogger.
-func (l *RiLogger) setBody(c *fiber.Ctx) {
-	var body any
-	if err := c.BodyParser(&body); err != nil {
-		log.Printf("error parsing body: %v", err)
-	}
-
-	switch l.Path {
-	case "/api/users/signup":
-		l.Body = "HAHA XD"
-	default:
-		l.Body = body
-	}
-}
-
-// setQuery implements IRiLogger.
-func (l *RiLogger) setQuery(c *fiber.Ctx) {
-	var query any
-	if err := c.BodyParser(&query); err != nil {
-		log.Printf("error parsing query: %v", err)
-	}
-	l.Query = query
-
-}
-
-// setResponse implements IRiLogger.
+// เพื่อเก็บ log ของ response ที่ส่งไปให้ client
 func (l *RiLogger) setResponse(res any) {
 	l.Response = res
 }

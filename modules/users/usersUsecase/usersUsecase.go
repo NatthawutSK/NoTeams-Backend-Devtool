@@ -1,29 +1,29 @@
-package usersUsecases
+package usersUsecase
 
 import (
 	"fmt"
 
 	"github.com/NatthawutSK/NoTeams-Backend/config"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users"
-	"github.com/NatthawutSK/NoTeams-Backend/modules/users/usersRepositories"
+	"github.com/NatthawutSK/NoTeams-Backend/modules/users/usersRepository"
 	"github.com/NatthawutSK/NoTeams-Backend/pkg/auth"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type IUserUsecase interface {
-	DeleteOauth(oauthId string) error
+	DeleteOauth(oauthId string) (string, error)
 	GetUserProfile(userId string) (*users.User, error)
-	InsertUser(req *users.UserRegisterReq) (*users.UserPassport, error)
+	InsertUser(req *users.UserRegisterReq) (*users.User, error)
 	GetPassport(req *users.UserCredential) (*users.UserPassport, error)
 	RefreshPassport(req *users.UserRefreshCredential) (*users.UserPassport, error)
 }
 
 type usersUsecase struct {
 	cfg             config.IConfig
-	usersRepository usersRepositories.IUserRepository
+	usersRepository usersRepository.IUserRepository
 }
 
-func UserUsecase(usersRepo usersRepositories.IUserRepository, cfg config.IConfig) IUserUsecase {
+func UserUsecase(usersRepo usersRepository.IUserRepository, cfg config.IConfig) IUserUsecase {
 	return &usersUsecase{
 		usersRepository: usersRepo,
 		cfg:             cfg,
@@ -31,7 +31,7 @@ func UserUsecase(usersRepo usersRepositories.IUserRepository, cfg config.IConfig
 }
 
 // use for register user
-func (u *usersUsecase) InsertUser(req *users.UserRegisterReq) (*users.UserPassport, error) {
+func (u *usersUsecase) InsertUser(req *users.UserRegisterReq) (*users.User, error) {
 	//hashing password
 	if err := req.BcryptHashing(); err != nil {
 		return nil, err
@@ -97,11 +97,11 @@ func (u *usersUsecase) GetPassport(req *users.UserCredential) (*users.UserPasspo
 }
 
 // use for logout
-func (u *usersUsecase) DeleteOauth(oauthId string) error {
+func (u *usersUsecase) DeleteOauth(oauthId string) (string, error) {
 	if err := u.usersRepository.DeleteOauth(oauthId); err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return "logout success", nil
 
 }
 

@@ -51,7 +51,7 @@ func (s *server) Start() {
 	modules := InitModule(api, s, middleware)
 
 	modules.MonitorModule()
-	modules.UsersModule()
+	modules.UserModule().Init()
 	//other module
 
 	// if route not found

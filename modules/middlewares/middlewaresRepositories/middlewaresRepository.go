@@ -22,7 +22,7 @@ func (r *middlewaresRepository) FindAccessToken(userId, accessToken string) bool
 	query := `
 	SELECT
 		(CASE WHEN COUNT(*) = 1 THEN TRUE ELSE FALSE END)
-	FROM "oauth"
+	FROM "Oauth"
 	WHERE "user_id" = $1
 	AND "access_token" = $2;`
 
@@ -30,5 +30,5 @@ func (r *middlewaresRepository) FindAccessToken(userId, accessToken string) bool
 	if err := r.db.Get(&check, query, userId, accessToken); err != nil {
 		return false
 	}
-	return true
+	return check
 }

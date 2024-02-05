@@ -1,4 +1,4 @@
-package usersHandlers
+package usersHandler
 
 import (
 	"strings"
@@ -6,7 +6,7 @@ import (
 	"github.com/NatthawutSK/NoTeams-Backend/config"
 	"github.com/NatthawutSK/NoTeams-Backend/entities"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users"
-	"github.com/NatthawutSK/NoTeams-Backend/modules/users/usersUsecases"
+	"github.com/NatthawutSK/NoTeams-Backend/modules/users/usersUsecase"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -29,14 +29,14 @@ type IUsersHandler interface {
 }
 
 type usersHandler struct {
-	usersUsecases usersUsecases.IUserUsecase
-	cfg           config.IConfig
+	usersUsecase usersUsecase.IUserUsecase
+	cfg          config.IConfig
 }
 
-func UsersHandler(usersUsecases usersUsecases.IUserUsecase, cfg config.IConfig) IUsersHandler {
+func UsersHandler(usersUsecase usersUsecase.IUserUsecase, cfg config.IConfig) IUsersHandler {
 	return &usersHandler{
-		usersUsecases: usersUsecases,
-		cfg:           cfg,
+		usersUsecase: usersUsecase,
+		cfg:          cfg,
 	}
 }
 
@@ -50,7 +50,7 @@ func (h *usersHandler) SignIn(c *fiber.Ctx) error {
 		).Res()
 	}
 
-	result, err := h.usersUsecases.GetPassport(req)
+	result, err := h.usersUsecase.GetPassport(req)
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
@@ -83,7 +83,7 @@ func (h *usersHandler) SignUp(c *fiber.Ctx) error {
 	}
 
 	// Insert user
-	result, err := h.usersUsecases.InsertUser(req)
+	result, err := h.usersUsecase.InsertUser(req)
 	if err != nil {
 		switch err.Error() {
 		case "username has been used":
@@ -115,7 +115,7 @@ func (h *usersHandler) GetUserProfile(c *fiber.Ctx) error {
 
 	userId := strings.Trim(c.Params("user_id"), " ")
 
-	result, err := h.usersUsecases.GetUserProfile(userId)
+	result, err := h.usersUsecase.GetUserProfile(userId)
 	if err != nil {
 		switch err.Error() {
 		case "get user failed: sql: no rows in result set":
@@ -149,7 +149,8 @@ func (h *usersHandler) SignOut(c *fiber.Ctx) error {
 		).Res()
 	}
 
-	if err := h.usersUsecases.DeleteOauth(req.OauthId); err != nil {
+	res, err := h.usersUsecase.DeleteOauth(req.OauthId)
+	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
 			string(signOutErr),
@@ -157,7 +158,7 @@ func (h *usersHandler) SignOut(c *fiber.Ctx) error {
 		).Res()
 	}
 
-	return entities.NewResponse(c).Success(fiber.StatusOK, nil).Res()
+	return entities.NewResponse(c).Success(fiber.StatusOK, res).Res()
 }
 
 func (h *usersHandler) RefreshPassport(c *fiber.Ctx) error {
@@ -170,7 +171,7 @@ func (h *usersHandler) RefreshPassport(c *fiber.Ctx) error {
 		).Res()
 	}
 
-	passport, err := h.usersUsecases.RefreshPassport(req)
+	passport, err := h.usersUsecase.RefreshPassport(req)
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,

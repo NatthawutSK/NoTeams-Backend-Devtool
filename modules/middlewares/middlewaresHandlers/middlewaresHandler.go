@@ -72,7 +72,7 @@ func (h *middlewaresHandler) Logger() fiber.Handler {
 	})
 }
 
-// ตรวจสอบ token ว่ามีความถูกต้องหรือไม่
+// แกะ token และตรวจสอบว่า Login อยู่หรือไม่
 func (h *middlewaresHandler) JwtAuth() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		token := strings.TrimPrefix(c.Get("Authorization"), "Bearer ")
@@ -86,15 +86,17 @@ func (h *middlewaresHandler) JwtAuth() fiber.Handler {
 		}
 
 		claims := result.Claims
-		if !h.middlewaresUsecase.FindAccessToken(claims.Id, token) {
+		// check token in db
+		check := h.middlewaresUsecase.FindAccessToken(claims.Id, token)
+		if !check {
 			return entities.NewResponse(c).Error(
 				fiber.ErrUnauthorized.Code,
 				string(jwtAuthErr),
-				"no permission to access",
+				"You Are Not Logged In",
 			).Res()
 		}
 
-		// set UserId
+		// set UserId and roleId to locals
 		c.Locals("userId", claims.Id)
 		return c.Next()
 	}

@@ -1,8 +1,7 @@
-package usersRepositories
+package usersRepository
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -14,7 +13,7 @@ type IUserRepository interface {
 	GetProfile(userId string) (*users.User, error)
 	FindOneUserByEmail(email string) (*users.UserCredentialCheck, error)
 	InsertUser(req *users.UserRegisterReq) (IUserRepository, error)
-	Result() (*users.UserPassport, error)
+	Result() (*users.User, error)
 	InsertOauth(req *users.UserPassport) error
 	DeleteOauth(oauthId string) error
 	UpdateOauth(req *users.UserToken) error
@@ -38,7 +37,7 @@ func (r *usersRepository) InsertUser(req *users.UserRegisterReq) (IUserRepositor
 	defer cancel()
 
 	query := `
-	INSERT INTO "users" (
+	INSERT INTO "User" (
 		email,
 		password,
 		username
@@ -53,9 +52,9 @@ func (r *usersRepository) InsertUser(req *users.UserRegisterReq) (IUserRepositor
 		req.Username,
 	).Scan(&r.id); err != nil {
 		switch err.Error() {
-		case "ERROR: duplicate key value violates unique constraint \"users_username_key\" (SQLSTATE 23505)":
+		case "ERROR: duplicate key value violates unique constraint \"User_username_key\" (SQLSTATE 23505)":
 			return nil, fmt.Errorf("username has been used")
-		case "ERROR: duplicate key value violates unique constraint \"users_email_key\" (SQLSTATE 23505)":
+		case "ERROR: duplicate key value violates unique constraint \"User_email_key\" (SQLSTATE 23505)":
 			return nil, fmt.Errorf("email has been used")
 		default:
 			return nil, fmt.Errorf("insert user failed: %v", err)
@@ -65,33 +64,21 @@ func (r *usersRepository) InsertUser(req *users.UserRegisterReq) (IUserRepositor
 }
 
 // result from insert user
-func (r *usersRepository) Result() (*users.UserPassport, error) {
+func (r *usersRepository) Result() (*users.User, error) {
 	query := `
 	SELECT
-		json_build_object(
-			'user', "t",
-			'token', NULL
-		)
-	FROM (
-		SELECT
-			"u"."id",
-			"u"."email",
-			"u"."username"
-		FROM "users" "u"
-		WHERE "u"."id" = $1
-	) AS "t"`
+		"u"."id",
+		"u"."email",
+		"u"."username"
+	FROM "User" "u"
+	WHERE "u"."id" = $1
+	`
 
-	//json_build_object คือ การสร้าง json จากข้อมูลได้
-
-	data := make([]byte, 0)
-	if err := r.db.Get(&data, query, r.id); err != nil {
+	user := new(users.User)
+	if err := r.db.Get(user, query, r.id); err != nil {
 		return nil, fmt.Errorf("get user failed: %v", err)
 	}
 
-	user := new(users.UserPassport)
-	if err := json.Unmarshal(data, &user); err != nil {
-		return nil, fmt.Errorf("unmarshal user failed: %v", err)
-	}
 	return user, nil
 }
 
@@ -102,7 +89,7 @@ func (r *usersRepository) FindOneUserByEmail(email string) (*users.UserCredentia
 		"email",
 		"password",
 		"username"
-	FROM "users"
+	FROM "User"
 	WHERE "email" = $1;`
 	user := new(users.UserCredentialCheck)
 	if err := r.db.Get(user, query, email); err != nil {
@@ -116,7 +103,7 @@ func (r *usersRepository) FindOneOauth(refreshToken string) (*users.Oauth, error
 	SELECT
 		"id",
 		"user_id"
-	FROM "oauth"
+	FROM "Oauth"
 	WHERE "refresh_token" = $1;`
 
 	oauth := new(users.Oauth)
@@ -131,7 +118,7 @@ func (r *usersRepository) InsertOauth(req *users.UserPassport) error {
 	defer cancel()
 
 	query := `
-	INSERT INTO "oauth" (
+	INSERT INTO "Oauth" (
 		"user_id",
 		"refresh_token",
 		"access_token"
@@ -153,7 +140,7 @@ func (r *usersRepository) InsertOauth(req *users.UserPassport) error {
 
 func (r *usersRepository) UpdateOauth(req *users.UserToken) error {
 	query := `
-	UPDATE "oauth" SET
+	UPDATE "Oauth" SET
 		"access_token" = :access_token,
 		"refresh_token" = :refresh_token
 	WHERE "id" = :id;`
@@ -166,7 +153,7 @@ func (r *usersRepository) UpdateOauth(req *users.UserToken) error {
 
 func (r *usersRepository) DeleteOauth(oauthId string) error {
 	query := `
-	DELETE FROM "oauth"
+	DELETE FROM "Oauth"
 	WHERE "id" = $1;`
 
 	if _, err := r.db.ExecContext(context.Background(), query, oauthId); err != nil {
@@ -181,7 +168,7 @@ func (r *usersRepository) GetProfile(userId string) (*users.User, error) {
 		"id",
 		"email",
 		"username"
-	FROM "users"
+	FROM "User"
 	WHERE "id" = $1;`
 
 	profile := new(users.User)
