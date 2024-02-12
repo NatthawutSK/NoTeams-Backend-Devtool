@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/NatthawutSK/NoTeams-Backend/config"
@@ -22,8 +21,6 @@ func main() {
 
 	db := databases.DbConnect(cfg.Db())
 	defer db.Close()
-
-	fmt.Println(db)
 
 	servers.NewSever(cfg, db).Start()
 }
