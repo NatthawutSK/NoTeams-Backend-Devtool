@@ -32,7 +32,7 @@ vendor
 /assets
 
 # Customs
-*.env*
+# *.env*
 .air*
 /tmp
 *.pem

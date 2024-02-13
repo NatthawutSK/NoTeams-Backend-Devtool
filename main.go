@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/NatthawutSK/NoTeams-Backend/config"
@@ -8,16 +9,13 @@ import (
 	"github.com/NatthawutSK/NoTeams-Backend/servers"
 )
 
-func envPath() string {
-	if len(os.Args) == 1 {
-		return ".env"
-	} else {
-		return os.Args[1]
-	}
-}
-
 func main() {
-	cfg := config.LoadConfig(envPath())
+	cfg := config.LoadConfig(func() string {
+		if len(os.Args) < 2 {
+			log.Fatal("Error: .env path is required")
+		}
+		return os.Args[1]
+	}())
 
 	db := databases.DbConnect(cfg.Db())
 	defer db.Close()
