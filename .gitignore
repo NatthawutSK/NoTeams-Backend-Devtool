@@ -38,5 +38,3 @@ vendor
 *.pem
 apikey.txt
 *.txt
-
-Makefile
