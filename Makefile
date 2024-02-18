@@ -33,3 +33,5 @@ migrate_down:
 
 
 .PHONY: init_db into_db create_db drop_db db run_db migrate_up migrate_down dev prod
+# git clone https://NatthawutSK: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@github.com/NatthawutSK/NoTeams-Backend.git
+# https://github.com/NatthawutSK/NoTeams-Backend.git
