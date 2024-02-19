@@ -20,12 +20,14 @@ type server struct {
 	app *fiber.App
 	cfg config.IConfig
 	db  *sqlx.DB
+	// s3  *s3.Client
 }
 
 func NewSever(cfg config.IConfig, db *sqlx.DB) IServer {
 	return &server{
 		cfg: cfg,
 		db:  db,
+		// s3:  s3Client,
 		app: fiber.New(fiber.Config{
 			AppName:      cfg.App().Name(),
 			BodyLimit:    cfg.App().BodyLimit(),
@@ -52,6 +54,7 @@ func (s *server) Start() {
 
 	modules.MonitorModule()
 	modules.UserModule().Init()
+	modules.FilesModule().Init()
 	//other module
 
 	// if route not found

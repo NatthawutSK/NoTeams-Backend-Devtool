@@ -1,0 +1,65 @@
+package filesHandler
+
+import (
+	"github.com/NatthawutSK/NoTeams-Backend/config"
+	"github.com/NatthawutSK/NoTeams-Backend/entities"
+	"github.com/NatthawutSK/NoTeams-Backend/modules/files/filesUsecase"
+	"github.com/gofiber/fiber/v2"
+)
+
+type FileHandlerErrCode string
+
+const (
+	uploadFilesErr FileHandlerErrCode = "files-001"
+)
+
+type IFileHandler interface {
+	UploadFiles(c *fiber.Ctx) error
+}
+
+type fileHandler struct {
+	cfg         config.IConfig
+	fileUsecase filesUsecase.IFilesUsecase
+}
+
+func FileHandler(cfg config.IConfig, fileUsecase filesUsecase.IFilesUsecase) IFileHandler {
+	return &fileHandler{
+		cfg:         cfg,
+		fileUsecase: fileUsecase,
+	}
+}
+
+func (h *fileHandler) UploadFiles(c *fiber.Ctx) error {
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(uploadFilesErr),
+			err.Error(),
+		).Res()
+	}
+
+	filesReq := form.File["files"]
+	if len(filesReq) == 0 {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(uploadFilesErr),
+			"no files found",
+		).Res()
+	}
+
+	if err := h.fileUsecase.UploadFiles(filesReq); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(uploadFilesErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		"success",
+	).Res()
+
+}

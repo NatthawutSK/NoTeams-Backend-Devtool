@@ -17,6 +17,9 @@ func main() {
 		return os.Args[1]
 	}())
 
+	// s3 := s3Conn.S3Connect(cfg.S3())
+	// _ = s3
+
 	db := databases.DbConnect(cfg.Db())
 	defer db.Close()
 

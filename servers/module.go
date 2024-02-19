@@ -11,6 +11,7 @@ import (
 type IModuleFactory interface {
 	MonitorModule()
 	UserModule() IUserModule
+	FilesModule() IFilesModule
 }
 
 type moduleFactory struct {
@@ -37,16 +38,3 @@ func InitMiddlewares(s *server) middlewaresHandlers.IMiddlewaresHandler {
 	usecase := middlewaresUsecases.MiddlewaresUsecase(repository)
 	return middlewaresHandlers.MiddlewaresHandler(s.cfg, usecase)
 }
-
-// func (m *moduleFactory) UsersModule() {
-// 	repository := usersRepository.UserRepository(m.s.db)
-// 	usecase := usersUsecase.UserUsecase(repository, m.s.cfg)
-// 	handler := usersHandler.UsersHandler(usecase, m.s.cfg)
-
-// 	router := m.r.Group("/users")
-
-// 	router.Post("/signup", handler.SignUp)
-// 	router.Post("/signin", handler.SignIn)
-// 	router.Post("/signout", m.mid.JwtAuth(), handler.SignOut)
-// 	router.Get("/:user_id", m.mid.JwtAuth(), m.mid.ParamsCheck(), handler.GetUserProfile)
-// }

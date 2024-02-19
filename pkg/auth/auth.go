@@ -56,18 +56,6 @@ func (a *riAuth) SignToken() string {
 	return ss
 }
 
-// func (a *riAdmin) SignToken() string {
-// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, a.mapClaims)
-// 	ss, _ := token.SignedString(a.cfg.AdminKey())
-// 	return ss
-// }
-
-// func (a *riApiKey) SignToken() string {
-// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, a.mapClaims)
-// 	ss, _ := token.SignedString(a.cfg.ApiKey())
-// 	return ss
-// }
-
 func jwtTimeDuration(t int) *jwt.NumericDate {
 	return jwt.NewNumericDate(time.Now().Add(time.Duration(int64(t) * int64(math.Pow10(9)))))
 }
@@ -101,56 +89,6 @@ func ParseToken(cfg config.IJwtConfig, tokenString string) (*riMapClaims, error)
 	}
 
 }
-
-// func ParseAdminToken(cfg config.IJwtConfig, tokenString string) (*riMapClaims, error) {
-// 	token, err := jwt.ParseWithClaims(tokenString, &riMapClaims{}, func(t *jwt.Token) (interface{}, error) {
-// 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-// 			return nil, fmt.Errorf("signing method is invalid")
-// 		}
-// 		return cfg.AdminKey(), nil
-// 	})
-// 	if err != nil {
-// 		if errors.Is(err, jwt.ErrTokenMalformed) {
-// 			return nil, fmt.Errorf("token format is invalid")
-// 		} else if errors.Is(err, jwt.ErrTokenExpired) {
-// 			return nil, fmt.Errorf("token is expired")
-// 		} else {
-// 			return nil, fmt.Errorf("parse token  failed : %v", err)
-// 		}
-// 	}
-
-// 	if claims, ok := token.Claims.(*riMapClaims); ok {
-// 		return claims, nil
-// 	} else {
-// 		return nil, fmt.Errorf("claims type is invalid")
-// 	}
-
-// }
-
-// func ParseApiKey(cfg config.IJwtConfig, tokenString string) (*riMapClaims, error) {
-// 	token, err := jwt.ParseWithClaims(tokenString, &riMapClaims{}, func(t *jwt.Token) (interface{}, error) {
-// 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-// 			return nil, fmt.Errorf("signing method is invalid")
-// 		}
-// 		return cfg.ApiKey(), nil
-// 	})
-// 	if err != nil {
-// 		if errors.Is(err, jwt.ErrTokenMalformed) {
-// 			return nil, fmt.Errorf("token format is invalid")
-// 		} else if errors.Is(err, jwt.ErrTokenExpired) {
-// 			return nil, fmt.Errorf("token is expired")
-// 		} else {
-// 			return nil, fmt.Errorf("parse token  failed : %v", err)
-// 		}
-// 	}
-
-// 	if claims, ok := token.Claims.(*riMapClaims); ok {
-// 		return claims, nil
-// 	} else {
-// 		return nil, fmt.Errorf("claims type is invalid")
-// 	}
-
-// }
 
 // use for refresh token when already login
 func RepeatToken(cfg config.IJwtConfig, claims *users.UserClaims, exp int64) string {

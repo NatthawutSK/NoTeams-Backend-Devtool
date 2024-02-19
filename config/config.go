@@ -49,6 +49,13 @@ func LoadConfig(path string) IConfig {
 				}
 				return b
 			}(),
+			fileUploadLimit: func() int {
+				b, err := strconv.Atoi(envMap["APP_FILE_UPLOAD_LIMIT"])
+				if err != nil {
+					log.Fatalf("load file limit failed: %v", err)
+				}
+				return b
+			}(),
 		},
 		db: &db{
 			host: envMap["DB_HOST"],
@@ -73,9 +80,7 @@ func LoadConfig(path string) IConfig {
 			}(),
 		},
 		jwt: &jwt{
-			adminKey:  envMap["JWT_ADMIN_KEY"],
 			secertKey: envMap["JWT_SECRET_KEY"],
-			apiKey:    envMap["JWT_API_KEY"],
 			accessExpiresAt: func() int {
 				t, err := strconv.Atoi(envMap["JWT_ACCESS_EXPIRES"])
 				if err != nil {
@@ -91,6 +96,13 @@ func LoadConfig(path string) IConfig {
 				return t
 			}(),
 		},
+		s3: &s3{
+			s3AccessKey: envMap["S3_ACCESS_KEY"],
+			s3SecretKey: envMap["S3_SECRET_KEY"],
+			s3Bucket:    envMap["S3_BUCKET"],
+			s3Region:    envMap["S3_REGION"],
+			s3Session:   envMap["S3_SESSION_TOKEN"],
+		},
 	}
 }
 
@@ -98,12 +110,14 @@ type IConfig interface {
 	App() IAppConfig
 	Db() IDbConfig
 	Jwt() IJwtConfig
+	S3() IS3Config
 }
 
 type config struct {
 	app *app
 	db  *db
 	jwt *jwt
+	s3  *s3
 }
 
 type IAppConfig interface {
@@ -114,34 +128,38 @@ type IAppConfig interface {
 	WriteTimeout() time.Duration
 	BodyLimit() int
 	FileLimit() int
-	GCPBucket() string
 	Host() string
 	Port() int
 }
 
 type app struct {
-	host         string
-	port         int
-	name         string
-	version      string
-	readTimeout  time.Duration
-	writeTimeout time.Duration
-	bodyLimit    int //bytes
-	fileLimit    int //bytes
-	gcpbucket    string
+	host            string
+	port            int
+	name            string
+	version         string
+	readTimeout     time.Duration
+	writeTimeout    time.Duration
+	bodyLimit       int //bytes
+	fileUploadLimit int //bytes
 }
 
 func (c *config) App() IAppConfig {
 	return c.app
 }
-func (a *app) Url() string                 { return fmt.Sprintf("%s:%d", a.host, a.port) } // host:port
+
+func (a *app) FileLimit() int {
+	return a.fileUploadLimit
+}
+
+func (a *app) Url() string {
+	return fmt.Sprintf("%s:%d", a.host, a.port)
+}
 func (a *app) Name() string                { return a.name }
 func (a *app) Version() string             { return a.version }
 func (a *app) ReadTimeout() time.Duration  { return a.readTimeout }
 func (a *app) WriteTimeout() time.Duration { return a.writeTimeout }
 func (a *app) BodyLimit() int              { return a.bodyLimit }
-func (a *app) FileLimit() int              { return a.fileLimit }
-func (a *app) GCPBucket() string           { return a.gcpbucket }
+func (a *app) FileUploadLimit() int        { return a.fileUploadLimit }
 func (a *app) Host() string                { return a.host }
 func (a *app) Port() int                   { return a.port }
 
@@ -179,8 +197,6 @@ func (d *db) MaxOpenConns() int { return d.maxConnections }
 
 type IJwtConfig interface {
 	SecretKey() []byte
-	AdminKey() []byte
-	ApiKey() []byte
 	AccessExpiresAt() int
 	RefreshExpiresAt() int
 	SetJwtAccessExpires(t int)
@@ -189,8 +205,6 @@ type IJwtConfig interface {
 
 type jwt struct {
 	secertKey        string
-	adminKey         string
-	apiKey           string
 	accessExpiresAt  int //sec
 	refreshExpiresAt int //sec
 }
@@ -199,9 +213,33 @@ func (c *config) Jwt() IJwtConfig {
 	return c.jwt
 }
 func (j *jwt) SecretKey() []byte          { return []byte(j.secertKey) }
-func (j *jwt) AdminKey() []byte           { return []byte(j.adminKey) }
-func (j *jwt) ApiKey() []byte             { return []byte(j.apiKey) }
 func (j *jwt) AccessExpiresAt() int       { return j.accessExpiresAt }
 func (j *jwt) RefreshExpiresAt() int      { return j.refreshExpiresAt }
 func (j *jwt) SetJwtAccessExpires(t int)  { j.accessExpiresAt = t }
 func (j *jwt) SetJwtRefreshExpires(t int) { j.refreshExpiresAt = t }
+
+type s3 struct {
+	s3AccessKey string
+	s3SecretKey string
+	s3Bucket    string
+	s3Region    string
+	s3Session   string
+}
+
+type IS3Config interface {
+	S3AccessKey() string
+	S3SecretKey() string
+	S3Bucket() string
+	S3Region() string
+	S3Session() string
+}
+
+func (s *s3) S3AccessKey() string { return s.s3AccessKey }
+func (s *s3) S3SecretKey() string { return s.s3SecretKey }
+func (s *s3) S3Bucket() string    { return s.s3Bucket }
+func (s *s3) S3Region() string    { return s.s3Region }
+func (s *s3) S3Session() string   { return s.s3Session }
+
+func (c *config) S3() IS3Config {
+	return c.s3
+}
