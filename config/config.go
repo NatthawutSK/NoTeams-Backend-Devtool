@@ -99,7 +99,7 @@ func LoadConfig(path string) IConfig {
 		s3: &s3{
 			s3AccessKey: envMap["S3_ACCESS_KEY"],
 			s3SecretKey: envMap["S3_SECRET_KEY"],
-			s3Bucket:    envMap["S3_BUCKET"],
+			s3Bucket:    envMap["S3_BUCKET_NAME"],
 			s3Region:    envMap["S3_REGION"],
 			s3Session:   envMap["S3_SESSION_TOKEN"],
 		},
