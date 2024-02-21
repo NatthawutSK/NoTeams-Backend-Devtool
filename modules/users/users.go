@@ -11,12 +11,18 @@ type User struct {
 	Id       string `db:"id" json:"id"`
 	Email    string `db:"email" json:"email"`
 	Username string `db:"username" json:"username"`
+	Dob      string `db:"dob" json:"dob"`
+	Phone    string `db:"phone" json:"phone"`
+	Avatar   string `db:"avatar" json:"avatar"`
+	Bio      string `db:"bio" json:"bio"`
 }
 
 type UserRegisterReq struct {
 	Email    string `db:"email" json:"email" form:"email"`
 	Password string `db:"password" json:"password" form:"password"`
 	Username string `db:"username" json:"username" form:"username"`
+	Dob      string `db:"dob" json:"dob" form:"dob"`
+	Phone    string `db:"phone" json:"phone" form:"phone"`
 }
 
 type UserCredentialCheck struct {
