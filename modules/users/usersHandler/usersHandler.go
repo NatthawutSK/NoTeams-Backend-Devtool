@@ -75,24 +75,6 @@ func (h *usersHandler) SignUp(c *fiber.Ctx) error {
 		).Res()
 	}
 
-	// Request Body parser
-
-	// if err := c.BodyParser(req); err != nil {
-	// 	return entities.NewResponse(c).Error(
-	// 		fiber.ErrBadRequest.Code,
-	// 		string(signUpErr),
-	// 		err.Error(),
-	// 	).Res()
-	// }
-	// Email validation
-	// if !req.IsEmail() {
-	// 	return entities.NewResponse(c).Error(
-	// 		fiber.ErrBadRequest.Code,
-	// 		string(signUpErr),
-	// 		"email is invalid",
-	// 	).Res()
-	// }
-
 	// Insert user
 	result, err := h.usersUsecase.InsertUser(req)
 	if err != nil {

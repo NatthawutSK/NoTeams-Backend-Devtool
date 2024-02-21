@@ -5,7 +5,7 @@ type UserRegisterReq struct {
 	Password string `db:"password" json:"password" form:"password" validate:"required,min=8,max=32"`
 	Username string `db:"username" json:"username" form:"username" validate:"required,min=4,max=32"`
 	Dob      string `db:"dob" json:"dob" form:"dob" validate:"required"`
-	Phone    string `db:"phone" json:"phone" form:"phone" validate:"required,min=10,max=10"`
+	Phone    string `db:"phone" json:"phone" form:"phone" validate:"required,min=10,max=10,number"`
 	Bio      string `db:"bio" json:"bio" form:"bio" validate:"min=0,max=255"`
 }
 

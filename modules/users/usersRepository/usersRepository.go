@@ -40,9 +40,12 @@ func (r *usersRepository) InsertUser(req *users.UserRegisterReq) (IUserRepositor
 	INSERT INTO "User" (
 		email,
 		password,
-		username
+		username,
+		dob,
+		phone,
+		bio
 		)
-	VALUES ($1, $2, $3)
+	VALUES ($1, $2, $3, $4, $5, $6)
 	RETURNING "id";
 	`
 	if err := r.db.QueryRowContext(ctx,
@@ -50,6 +53,9 @@ func (r *usersRepository) InsertUser(req *users.UserRegisterReq) (IUserRepositor
 		req.Email,
 		req.Password,
 		req.Username,
+		req.Dob,
+		req.Phone,
+		req.Bio,
 	).Scan(&r.id); err != nil {
 		switch err.Error() {
 		case "ERROR: duplicate key value violates unique constraint \"User_username_key\" (SQLSTATE 23505)":
@@ -69,7 +75,10 @@ func (r *usersRepository) Result() (*users.User, error) {
 	SELECT
 		"u"."id",
 		"u"."email",
-		"u"."username"
+		"u"."username",
+		"u"."dob",
+		"u"."phone",
+		"u"."bio"
 	FROM "User" "u"
 	WHERE "u"."id" = $1
 	`
