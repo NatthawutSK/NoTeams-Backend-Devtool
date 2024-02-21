@@ -41,7 +41,7 @@ func UsersHandler(usersUsecase usersUsecase.IUserUsecase, cfg config.IConfig) IU
 }
 
 func (h *usersHandler) SignIn(c *fiber.Ctx) error {
-	req := new(users.UserCredential)
+	req := new(users.UserLoginReq)
 	if err := c.BodyParser(req); err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
@@ -63,24 +63,35 @@ func (h *usersHandler) SignIn(c *fiber.Ctx) error {
 }
 
 func (h *usersHandler) SignUp(c *fiber.Ctx) error {
-	// Request Body parser
 	req := new(users.UserRegisterReq)
 
-	if err := c.BodyParser(req); err != nil {
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
 			string(signUpErr),
 			err.Error(),
 		).Res()
 	}
+
+	// Request Body parser
+
+	// if err := c.BodyParser(req); err != nil {
+	// 	return entities.NewResponse(c).Error(
+	// 		fiber.ErrBadRequest.Code,
+	// 		string(signUpErr),
+	// 		err.Error(),
+	// 	).Res()
+	// }
 	// Email validation
-	if !req.IsEmail() {
-		return entities.NewResponse(c).Error(
-			fiber.ErrBadRequest.Code,
-			string(signUpErr),
-			"email is invalid",
-		).Res()
-	}
+	// if !req.IsEmail() {
+	// 	return entities.NewResponse(c).Error(
+	// 		fiber.ErrBadRequest.Code,
+	// 		string(signUpErr),
+	// 		"email is invalid",
+	// 	).Res()
+	// }
 
 	// Insert user
 	result, err := h.usersUsecase.InsertUser(req)
@@ -139,7 +150,7 @@ func (h *usersHandler) GetUserProfile(c *fiber.Ctx) error {
 }
 
 func (h *usersHandler) SignOut(c *fiber.Ctx) error {
-	req := new(users.UserRemoveCredential)
+	req := new(users.UserRemoveCredentialReq)
 
 	if err := c.BodyParser(req); err != nil {
 		return entities.NewResponse(c).Error(
@@ -162,7 +173,7 @@ func (h *usersHandler) SignOut(c *fiber.Ctx) error {
 }
 
 func (h *usersHandler) RefreshPassport(c *fiber.Ctx) error {
-	req := new(users.UserRefreshCredential)
+	req := new(users.UserRefreshCredentialReq)
 	if err := c.BodyParser(req); err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,

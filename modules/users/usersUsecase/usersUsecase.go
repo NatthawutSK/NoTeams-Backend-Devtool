@@ -7,6 +7,7 @@ import (
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users/usersRepository"
 	"github.com/NatthawutSK/NoTeams-Backend/pkg/auth"
+	"github.com/NatthawutSK/NoTeams-Backend/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,8 +15,8 @@ type IUserUsecase interface {
 	DeleteOauth(oauthId string) (string, error)
 	GetUserProfile(userId string) (*users.User, error)
 	InsertUser(req *users.UserRegisterReq) (*users.User, error)
-	GetPassport(req *users.UserCredential) (*users.UserPassport, error)
-	RefreshPassport(req *users.UserRefreshCredential) (*users.UserPassport, error)
+	GetPassport(req *users.UserLoginReq) (*users.UserPassport, error)
+	RefreshPassport(req *users.UserRefreshCredentialReq) (*users.UserPassport, error)
 }
 
 type usersUsecase struct {
@@ -33,7 +34,7 @@ func UserUsecase(usersRepo usersRepository.IUserRepository, cfg config.IConfig) 
 // use for register user
 func (u *usersUsecase) InsertUser(req *users.UserRegisterReq) (*users.User, error) {
 	//hashing password
-	if err := req.BcryptHashing(); err != nil {
+	if err := utils.BcryptHashing(req); err != nil {
 		return nil, err
 	}
 	//insert user
@@ -50,7 +51,7 @@ func (u *usersUsecase) InsertUser(req *users.UserRegisterReq) (*users.User, erro
 }
 
 // use for login to get token and user information
-func (u *usersUsecase) GetPassport(req *users.UserCredential) (*users.UserPassport, error) {
+func (u *usersUsecase) GetPassport(req *users.UserLoginReq) (*users.UserPassport, error) {
 	user, err := u.usersRepository.FindOneUserByEmail(req.Email)
 	if err != nil {
 		return nil, err
@@ -106,7 +107,7 @@ func (u *usersUsecase) DeleteOauth(oauthId string) (string, error) {
 }
 
 // use for refresh token
-func (u *usersUsecase) RefreshPassport(req *users.UserRefreshCredential) (*users.UserPassport, error) {
+func (u *usersUsecase) RefreshPassport(req *users.UserRefreshCredentialReq) (*users.UserPassport, error) {
 	claims, err := auth.ParseToken(u.cfg.Jwt(), req.RefreshToken)
 	if err != nil {
 		return nil, err
