@@ -31,7 +31,13 @@ migrate_up:
 migrate_down:
 	migrate -database '$(DB_URL)' -path $(PATH_MIGRATE) -verbose down
 
+into_db_prod:
+	psql --host=noteams-prod.c1qaumiuo6j0.us-east-1.rds.amazonaws.com --port=5432 --username=noteams --password --dbname=noteams_db
 
-.PHONY: init_db into_db create_db drop_db db run_db migrate_up migrate_down dev prod
+clone_git: 
+	git clone https://NatthawutSK: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@github.com/NatthawutSK/NoTeams-Backend.git
+
+
+.PHONY: init_db into_db create_db drop_db db run_db migrate_up migrate_down dev prod into_db_prod
 # git clone https://NatthawutSK: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@github.com/NatthawutSK/NoTeams-Backend.git
 # https://github.com/NatthawutSK/NoTeams-Backend.git

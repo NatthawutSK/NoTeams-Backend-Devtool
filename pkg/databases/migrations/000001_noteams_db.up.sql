@@ -24,6 +24,9 @@ CREATE TABLE "User" (
   "username" VARCHAR UNIQUE NOT NULL,
   "password" VARCHAR NOT NULL,
   "email" VARCHAR UNIQUE NOT NULL,
+  "dob" VARCHAR NOT NULL,
+  "phone" VARCHAR UNIQUE NOT NULL,
+  "bio" TEXT,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );
