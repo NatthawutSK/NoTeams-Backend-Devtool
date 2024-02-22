@@ -62,6 +62,8 @@ func (r *usersRepository) InsertUser(req *users.UserRegisterReq) (IUserRepositor
 			return nil, fmt.Errorf("username has been used")
 		case "ERROR: duplicate key value violates unique constraint \"User_email_key\" (SQLSTATE 23505)":
 			return nil, fmt.Errorf("email has been used")
+		case "ERROR: duplicate key value violates unique constraint \"User_phone_key\" (SQLSTATE 23505)":
+			return nil, fmt.Errorf("phone number has been used")
 		default:
 			return nil, fmt.Errorf("insert user failed: %v", err)
 		}
@@ -97,7 +99,11 @@ func (r *usersRepository) FindOneUserByEmail(email string) (*users.UserCredentia
 		"id",
 		"email",
 		"password",
-		"username"
+		"username",
+		"dob",
+		"phone",
+		"bio",
+		"avatar"
 	FROM "User"
 	WHERE "email" = $1;`
 	user := new(users.UserCredentialCheck)

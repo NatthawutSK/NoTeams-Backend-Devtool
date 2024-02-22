@@ -10,14 +10,14 @@ type UserRegisterReq struct {
 }
 
 type UserLoginReq struct {
-	Email    string `db:"email" json:"email" form:"email"`
-	Password string `db:"password" json:"password" form:"password"`
+	Email    string `db:"email" json:"email" form:"email" validate:"required,email"`
+	Password string `db:"password" json:"password" form:"password" validate:"required,min=8,max=32"`
 }
 
 type UserRefreshCredentialReq struct {
-	RefreshToken string `db:"refresh_token" json:"refresh_token" form:"refresh_token"`
+	RefreshToken string `db:"refresh_token" json:"refresh_token" form:"refresh_token" validate:"required"`
 }
 
 type UserRemoveCredentialReq struct {
-	OauthId string `db:"id" json:"oauth_id" form:"oauth_id"`
+	OauthId string `db:"id" json:"oauth_id" form:"oauth_id" validate:"required"`
 }

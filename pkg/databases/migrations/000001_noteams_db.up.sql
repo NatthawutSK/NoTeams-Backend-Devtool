@@ -27,7 +27,7 @@ CREATE TABLE "User" (
   "dob" VARCHAR NOT NULL,
   "phone" VARCHAR UNIQUE NOT NULL,
   "bio" TEXT,
-  "avatar" VARCHAR,
+  "avatar" VARCHAR DEFAULT '',
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );

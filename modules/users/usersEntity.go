@@ -15,6 +15,10 @@ type UserCredentialCheck struct {
 	Email    string `db:"email" json:"email"`
 	Password string `db:"password" json:"password"`
 	Username string `db:"username" json:"username"`
+	Dob      string `db:"dob" json:"dob"`
+	Phone    string `db:"phone" json:"phone"`
+	Bio      string `db:"bio" json:"bio"`
+	Avatar   string `db:"avatar" json:"avatar"`
 }
 
 type UserPassport struct {

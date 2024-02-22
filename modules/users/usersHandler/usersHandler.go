@@ -42,7 +42,9 @@ func UsersHandler(usersUsecase usersUsecase.IUserUsecase, cfg config.IConfig) IU
 
 func (h *usersHandler) SignIn(c *fiber.Ctx) error {
 	req := new(users.UserLoginReq)
-	if err := c.BodyParser(req); err != nil {
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
 			string(signInErr),
@@ -134,7 +136,9 @@ func (h *usersHandler) GetUserProfile(c *fiber.Ctx) error {
 func (h *usersHandler) SignOut(c *fiber.Ctx) error {
 	req := new(users.UserRemoveCredentialReq)
 
-	if err := c.BodyParser(req); err != nil {
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
 			string(signOutErr),
@@ -156,7 +160,10 @@ func (h *usersHandler) SignOut(c *fiber.Ctx) error {
 
 func (h *usersHandler) RefreshPassport(c *fiber.Ctx) error {
 	req := new(users.UserRefreshCredentialReq)
-	if err := c.BodyParser(req); err != nil {
+
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
 			string(refreshPassportErr),
