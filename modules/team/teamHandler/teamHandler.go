@@ -12,15 +12,17 @@ import (
 type teamHandlerErrorCode string
 
 const (
-	createTeamErr teamHandlerErrorCode = "team-001"
-	getTeamById   teamHandlerErrorCode = "team-002"
-	joinTeamErr   teamHandlerErrorCode = "team-003"
+	createTeamErr   teamHandlerErrorCode = "team-001"
+	getTeamById     teamHandlerErrorCode = "team-002"
+	joinTeamErr     teamHandlerErrorCode = "team-003"
+	getTeamByUserId teamHandlerErrorCode = "team-004"
 )
 
 type ITeamHandler interface {
 	CreateTeam(c *fiber.Ctx) error
 	GetTeamById(c *fiber.Ctx) error
 	JoinTeam(c *fiber.Ctx) error
+	GetTeamByUserId(c *fiber.Ctx) error
 }
 
 type teamHandler struct {
@@ -98,6 +100,24 @@ func (h *teamHandler) JoinTeam(c *fiber.Ctx) error {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
 			string(joinTeamErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		result,
+	).Res()
+}
+
+func (h *teamHandler) GetTeamByUserId(c *fiber.Ctx) error {
+	userId := strings.TrimSpace(c.Params("user_id"))
+
+	result, err := h.teamUsecase.GetTeamByUserId(userId)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(getTeamByUserId),
 			err.Error(),
 		).Res()
 	}

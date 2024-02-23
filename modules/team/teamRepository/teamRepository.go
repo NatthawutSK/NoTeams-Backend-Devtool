@@ -13,6 +13,7 @@ type ITeamRepository interface {
 	CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRes, error)
 	GetTeamById(teamId string) (*team.GetTeamByIdRes, error)
 	JoinTeam(req *team.JoinTeamReq) (*team.JoinTeamRes, error)
+	GetTeamByUserId(userId string) ([]*team.GetTeamByUserIdRes, error)
 }
 
 type teamRepository struct {
@@ -202,4 +203,23 @@ func (r *teamRepository) JoinTeam(req *team.JoinTeamReq) (*team.JoinTeamRes, err
 	}
 
 	return res, nil
+}
+
+func (r *teamRepository) GetTeamByUserId(userId string) ([]*team.GetTeamByUserIdRes, error) {
+	query := `
+	SELECT
+		"t"."team_id",
+		"t"."team_name",
+		"t"."team_poster"
+	FROM "Team" "t"
+	INNER JOIN "TeamMember" "tm"
+	ON "t"."team_id" = "tm"."team_id"
+	WHERE "tm"."user_id" = $1;
+	`
+	teams := make([]*team.GetTeamByUserIdRes, 0)
+	if err := r.db.Select(&teams, query, userId); err != nil {
+		return nil, fmt.Errorf("get team by user id failed: %v", err)
+	}
+
+	return teams, nil
 }
