@@ -64,13 +64,13 @@ func (u *usersUsecase) GetPassport(req *users.UserLoginReq) (*users.UserPassport
 
 	// sign token
 	accessToken, err1 := auth.NewRiAuth(auth.Access, u.cfg.Jwt(), &users.UserClaims{
-		Id: user.Id,
+		Id: user.UserId,
 	})
 	if err1 != nil {
 		return nil, err
 	}
 	refreshToken, err2 := auth.NewRiAuth(auth.Refresh, u.cfg.Jwt(), &users.UserClaims{
-		Id: user.Id,
+		Id: user.UserId,
 	})
 	if err2 != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (u *usersUsecase) GetPassport(req *users.UserLoginReq) (*users.UserPassport
 	// set passport
 	passport := &users.UserPassport{
 		User: &users.User{
-			Id:       user.Id,
+			UserId:   user.UserId,
 			Email:    user.Email,
 			Username: user.Username,
 			Dob:      user.Dob,
@@ -130,7 +130,7 @@ func (u *usersUsecase) RefreshPassport(req *users.UserRefreshCredentialReq) (*us
 	}
 
 	newClaims := &users.UserClaims{
-		Id: profile.Id,
+		Id: profile.UserId,
 	}
 
 	accessToken, err := auth.NewRiAuth(auth.Access, u.cfg.Jwt(), newClaims)
@@ -142,7 +142,7 @@ func (u *usersUsecase) RefreshPassport(req *users.UserRefreshCredentialReq) (*us
 	passport := &users.UserPassport{
 		User: profile,
 		Token: &users.UserToken{
-			Id:           oauth.Id,
+			OauthId:      oauth.OauthId,
 			AccessToken:  accessToken.SignToken(),
 			RefreshToken: refreshToken,
 		},

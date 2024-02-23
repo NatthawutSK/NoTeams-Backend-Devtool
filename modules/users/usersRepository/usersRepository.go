@@ -46,7 +46,7 @@ func (r *usersRepository) InsertUser(req *users.UserRegisterReq) (IUserRepositor
 		bio
 		)
 	VALUES ($1, $2, $3, $4, $5, $6)
-	RETURNING "id";
+	RETURNING "user_id";
 	`
 	if err := r.db.QueryRowContext(ctx,
 		query,
@@ -75,14 +75,14 @@ func (r *usersRepository) InsertUser(req *users.UserRegisterReq) (IUserRepositor
 func (r *usersRepository) Result() (*users.User, error) {
 	query := `
 	SELECT
-		"u"."id",
+		"u"."user_id",
 		"u"."email",
 		"u"."username",
 		"u"."dob",
 		"u"."phone",
 		"u"."bio"
 	FROM "User" "u"
-	WHERE "u"."id" = $1
+	WHERE "u"."user_id" = $1
 	`
 
 	user := new(users.User)
@@ -96,7 +96,7 @@ func (r *usersRepository) Result() (*users.User, error) {
 func (r *usersRepository) FindOneUserByEmail(email string) (*users.UserCredentialCheck, error) {
 	query := `
 	SELECT
-		"id",
+		"user_id",
 		"email",
 		"password",
 		"username",
@@ -116,7 +116,7 @@ func (r *usersRepository) FindOneUserByEmail(email string) (*users.UserCredentia
 func (r *usersRepository) FindOneOauth(refreshToken string) (*users.Oauth, error) {
 	query := `
 	SELECT
-		"id",
+		"oauth_id",
 		"user_id"
 	FROM "Oauth"
 	WHERE "refresh_token" = $1;`
@@ -139,15 +139,15 @@ func (r *usersRepository) InsertOauth(req *users.UserPassport) error {
 		"access_token"
 	)
 	VALUES ($1, $2, $3)
-		RETURNING "id";`
+		RETURNING "oauth_id";`
 
 	if err := r.db.QueryRowContext(
 		ctx,
 		query,
-		req.User.Id,
+		req.User.UserId,
 		req.Token.RefreshToken,
 		req.Token.AccessToken,
-	).Scan(&req.Token.Id); err != nil {
+	).Scan(&req.Token.OauthId); err != nil {
 		return fmt.Errorf("insert oauth failed: %v", err)
 	}
 	return nil
@@ -158,7 +158,7 @@ func (r *usersRepository) UpdateOauth(req *users.UserToken) error {
 	UPDATE "Oauth" SET
 		"access_token" = :access_token,
 		"refresh_token" = :refresh_token
-	WHERE "id" = :id;`
+	WHERE "oauth_id" = :oauth_id;`
 
 	if _, err := r.db.NamedExecContext(context.Background(), query, req); err != nil {
 		return fmt.Errorf("update oauth failed: %v", err)
@@ -169,7 +169,7 @@ func (r *usersRepository) UpdateOauth(req *users.UserToken) error {
 func (r *usersRepository) DeleteOauth(oauthId string) error {
 	query := `
 	DELETE FROM "Oauth"
-	WHERE "id" = $1;`
+	WHERE "oauth_id" = $1;`
 
 	if _, err := r.db.ExecContext(context.Background(), query, oauthId); err != nil {
 		return fmt.Errorf("oauth not found")
@@ -180,11 +180,15 @@ func (r *usersRepository) DeleteOauth(oauthId string) error {
 func (r *usersRepository) GetProfile(userId string) (*users.User, error) {
 	query := `
 	SELECT
-		"id",
+		"user_id",
 		"email",
-		"username"
+		"username",
+		"dob",
+		"phone",
+		"bio",
+		"avatar"
 	FROM "User"
-	WHERE "id" = $1;`
+	WHERE "user_id" = $1;`
 
 	profile := new(users.User)
 	if err := r.db.Get(profile, query, userId); err != nil {
