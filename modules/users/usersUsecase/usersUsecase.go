@@ -17,6 +17,7 @@ type IUserUsecase interface {
 	InsertUser(req *users.UserRegisterReq) (*users.User, error)
 	GetPassport(req *users.UserLoginReq) (*users.UserPassport, error)
 	RefreshPassport(req *users.UserRefreshCredentialReq) (*users.UserPassport, error)
+	FindByEmailOrUsername(email, username string) (*users.FindMember, error)
 }
 
 type usersUsecase struct {
@@ -52,7 +53,7 @@ func (u *usersUsecase) InsertUser(req *users.UserRegisterReq) (*users.User, erro
 
 // use for login to get token and user information
 func (u *usersUsecase) GetPassport(req *users.UserLoginReq) (*users.UserPassport, error) {
-	user, err := u.usersRepository.FindOneUserByEmail(req.Email)
+	user, err := u.usersRepository.FindOneUserByEmailOrUsername(req.Email, "")
 	if err != nil {
 		return nil, err
 	}
@@ -164,4 +165,20 @@ func (u *usersUsecase) GetUserProfile(userId string) (*users.User, error) {
 	}
 	return profile, nil
 
+}
+
+func (u *usersUsecase) FindByEmailOrUsername(email, username string) (*users.FindMember, error) {
+	member, err := u.usersRepository.FindOneUserByEmailOrUsername(email, username)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &users.FindMember{
+		UserId:   member.UserId,
+		Username: member.Username,
+		Avatar:   member.Avatar,
+		Email:    member.Email,
+	}
+
+	return res, nil
 }

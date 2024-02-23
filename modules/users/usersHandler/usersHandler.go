@@ -13,11 +13,12 @@ import (
 type userHandlerErrorCode string
 
 const (
-	signUpErr          userHandlerErrorCode = "user-001"
-	signInErr          userHandlerErrorCode = "user-002"
-	getUserProfileErr  userHandlerErrorCode = "user-003"
-	signOutErr         userHandlerErrorCode = "user-004"
-	refreshPassportErr userHandlerErrorCode = "user-005"
+	signUpErr                       userHandlerErrorCode = "user-001"
+	signInErr                       userHandlerErrorCode = "user-002"
+	getUserProfileErr               userHandlerErrorCode = "user-003"
+	signOutErr                      userHandlerErrorCode = "user-004"
+	refreshPassportErr              userHandlerErrorCode = "user-005"
+	findOneUserByEmailOrUsernameErr userHandlerErrorCode = "user-006"
 )
 
 type IUsersHandler interface {
@@ -26,6 +27,7 @@ type IUsersHandler interface {
 	GetUserProfile(c *fiber.Ctx) error
 	SignOut(c *fiber.Ctx) error
 	RefreshPassport(c *fiber.Ctx) error
+	FindOneUserByEmailOrUsername(c *fiber.Ctx) error
 }
 
 type usersHandler struct {
@@ -181,4 +183,20 @@ func (h *usersHandler) RefreshPassport(c *fiber.Ctx) error {
 	}
 
 	return entities.NewResponse(c).Success(fiber.StatusOK, passport).Res()
+}
+
+func (h *usersHandler) FindOneUserByEmailOrUsername(c *fiber.Ctx) error {
+	email := c.Query("email")
+	username := c.Query("username")
+
+	result, err := h.usersUsecase.FindByEmailOrUsername(email, username)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(findOneUserByEmailOrUsernameErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(fiber.StatusOK, result).Res()
 }

@@ -11,7 +11,7 @@ import (
 
 type IUserRepository interface {
 	GetProfile(userId string) (*users.User, error)
-	FindOneUserByEmail(email string) (*users.UserCredentialCheck, error)
+	FindOneUserByEmailOrUsername(email, username string) (*users.UserCredentialCheck, error)
 	InsertUser(req *users.UserRegisterReq) (IUserRepository, error)
 	Result() (*users.User, error)
 	InsertOauth(req *users.UserPassport) error
@@ -95,7 +95,7 @@ func (r *usersRepository) Result() (*users.User, error) {
 	return user, nil
 }
 
-func (r *usersRepository) FindOneUserByEmail(email string) (*users.UserCredentialCheck, error) {
+func (r *usersRepository) FindOneUserByEmailOrUsername(email, username string) (*users.UserCredentialCheck, error) {
 	query := `
 	SELECT
 		"user_id",
@@ -107,9 +107,9 @@ func (r *usersRepository) FindOneUserByEmail(email string) (*users.UserCredentia
 		"bio",
 		"avatar"
 	FROM "User"
-	WHERE "email" = $1;`
+	WHERE "email" = $1 OR "username" = $2;`
 	user := new(users.UserCredentialCheck)
-	if err := r.db.Get(user, query, email); err != nil {
+	if err := r.db.Get(user, query, email, username); err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
 	return user, nil

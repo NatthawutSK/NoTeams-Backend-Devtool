@@ -43,7 +43,8 @@ func (m *userModule) Init() {
 	router.Post("/signin", m.handler.SignIn)
 	router.Post("/refresh", m.mid.JwtAuth(), m.handler.RefreshPassport)
 	router.Post("/signout", m.mid.JwtAuth(), m.handler.SignOut)
-	router.Get("/:user_id", m.mid.JwtAuth(), m.mid.ParamsCheck(), m.handler.GetUserProfile)
+	router.Get("/profile/:user_id", m.mid.JwtAuth(), m.mid.ParamsCheck(), m.handler.GetUserProfile)
+	router.Get("/find", m.mid.JwtAuth(), m.handler.FindOneUserByEmailOrUsername)
 
 }
 

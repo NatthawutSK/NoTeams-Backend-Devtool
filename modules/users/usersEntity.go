@@ -40,3 +40,10 @@ type Oauth struct {
 	OauthId string `db:"oauth_id" json:"oauth_id"`
 	UserId  string `db:"user_id" json:"user_id"`
 }
+
+type FindMember struct {
+	UserId   string `db:"user_id" json:"user_id"`
+	Username string `db:"username" json:"username"`
+	Avatar   string `db:"avatar" json:"avatar"`
+	Email    string `db:"email" json:"email"`
+}
