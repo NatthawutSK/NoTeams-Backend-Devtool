@@ -39,6 +39,7 @@ func (m *teamModule) Init() {
 	router := m.r.Group("/teams")
 
 	router.Post("/", m.mid.JwtAuth(), m.handler.CreateTeam)
+	router.Get("/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.handler.GetTeamById)
 
 }
 

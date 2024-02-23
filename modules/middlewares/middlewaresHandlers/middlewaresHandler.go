@@ -18,8 +18,7 @@ const (
 	routerCheckErr middlewareHandlersErrCode = "middleware-001"
 	jwtAuthErr     middlewareHandlersErrCode = "middleware-002"
 	paramsCheckErr middlewareHandlersErrCode = "middleware-003"
-	authorizeErr   middlewareHandlersErrCode = "middleware-004"
-	apiKeyErr      middlewareHandlersErrCode = "middleware-005"
+	authTeam       middlewareHandlersErrCode = "middleware-004"
 )
 
 type IMiddlewaresHandler interface {
@@ -28,6 +27,8 @@ type IMiddlewaresHandler interface {
 	Logger() fiber.Handler
 	JwtAuth() fiber.Handler
 	ParamsCheck() fiber.Handler
+	AuthTeam() fiber.Handler
+	AuthorizeTeam() fiber.Handler
 }
 
 type middlewaresHandler struct {
@@ -117,4 +118,38 @@ func (h *middlewaresHandler) ParamsCheck() fiber.Handler {
 		return c.Next()
 	}
 
+}
+
+// ตรวจสอบว่าเป็นสมาชิกของทีมหรือไม่ ต้องมาคู่กับ JwtAuth
+func (h *middlewaresHandler) AuthTeam() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userId := c.Locals("userId").(string)
+		teamId := strings.TrimSpace(c.Params("team_id"))
+		check := h.middlewaresUsecase.CheckMemberInTeam(userId, teamId)
+		if !check {
+			return entities.NewResponse(c).Error(
+				fiber.ErrUnauthorized.Code,
+				string(authTeam),
+				"no permission to access team",
+			).Res()
+		}
+		return c.Next()
+	}
+}
+
+// ตรวจสอบว่าเป็นเจ้าของทีมหรือไม่ ต้องมาคู่กับ JwtAuth
+func (h *middlewaresHandler) AuthorizeTeam() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userId := c.Locals("userId").(string)
+		teamId := strings.TrimSpace(c.Params("team_id"))
+		check := h.middlewaresUsecase.CheckOwnerInTeam(userId, teamId)
+		if !check {
+			return entities.NewResponse(c).Error(
+				fiber.ErrUnauthorized.Code,
+				string(authTeam),
+				"only owner have permission",
+			).Res()
+		}
+		return c.Next()
+	}
 }

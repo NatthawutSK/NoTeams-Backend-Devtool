@@ -4,6 +4,8 @@ import "github.com/NatthawutSK/NoTeams-Backend/modules/middlewares/middlewaresRe
 
 type IMiddlewaresUsecase interface {
 	FindAccessToken(userId, accessToken string) bool
+	CheckMemberInTeam(userId, teamId string) bool
+	CheckOwnerInTeam(userId, teamId string) bool
 }
 
 type middlewaresUsecase struct {
@@ -18,4 +20,12 @@ func MiddlewaresUsecase(middlewareRepository middlewaresRepositories.IMiddleware
 
 func (u *middlewaresUsecase) FindAccessToken(userId, accessToken string) bool {
 	return u.middlewareRepository.FindAccessToken(userId, accessToken)
+}
+
+func (u *middlewaresUsecase) CheckMemberInTeam(userId, teamId string) bool {
+	return u.middlewareRepository.CheckMemberInTeam(userId, teamId)
+}
+
+func (u *middlewaresUsecase) CheckOwnerInTeam(userId, teamId string) bool {
+	return u.middlewareRepository.CheckOwnerInTeam(userId, teamId)
 }

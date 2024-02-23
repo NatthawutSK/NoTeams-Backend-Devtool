@@ -8,6 +8,7 @@ import (
 
 type ITeamUsecase interface {
 	CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRes, error)
+	GetTeamById(teamId string) (*team.GetTeamByIdRes, error)
 }
 
 type teamUsecase struct {
@@ -24,6 +25,14 @@ func TeamUsecase(teamRepo teamRepository.ITeamRepository, cfg config.IConfig) IT
 
 func (u *teamUsecase) CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRes, error) {
 	result, err := u.teamRepo.CreateTeam(req)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (u *teamUsecase) GetTeamById(teamId string) (*team.GetTeamByIdRes, error) {
+	result, err := u.teamRepo.GetTeamById(teamId)
 	if err != nil {
 		return nil, err
 	}

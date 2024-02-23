@@ -11,6 +11,7 @@ import (
 
 type ITeamRepository interface {
 	CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRes, error)
+	GetTeamById(teamId string) (*team.GetTeamByIdRes, error)
 }
 
 type teamRepository struct {
@@ -118,4 +119,22 @@ func (r *teamRepository) CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRe
 	}
 
 	return res, nil
+}
+
+func (r *teamRepository) GetTeamById(teamId string) (*team.GetTeamByIdRes, error) {
+	query := `
+	SELECT
+		"team_id",
+		"team_name",
+		"team_poster"
+	FROM "Team"
+	WHERE "team_id" = $1;
+	`
+	fmt.Println("teamId", teamId)
+	team := new(team.GetTeamByIdRes)
+	if err := r.db.Get(team, query, teamId); err != nil {
+		return nil, fmt.Errorf("get team by id failed: %v", err)
+	}
+
+	return team, nil
 }
