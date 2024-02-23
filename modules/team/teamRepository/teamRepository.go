@@ -12,6 +12,7 @@ import (
 type ITeamRepository interface {
 	CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRes, error)
 	GetTeamById(teamId string) (*team.GetTeamByIdRes, error)
+	JoinTeam(req *team.JoinTeamReq) (*team.JoinTeamRes, error)
 }
 
 type teamRepository struct {
@@ -137,4 +138,68 @@ func (r *teamRepository) GetTeamById(teamId string) (*team.GetTeamByIdRes, error
 	}
 
 	return team, nil
+}
+
+// when join team
+// Check if code team exist then insert team member with role = MEMBER (Check if Member is exist in User table first)
+// Check if user already join team then return error
+func (r *teamRepository) JoinTeam(req *team.JoinTeamReq) (*team.JoinTeamRes, error) {
+	res := new(team.JoinTeamRes)
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	queryCheckCode := `
+	SELECT
+		team_id,
+		team_name,
+		team_poster
+	FROM "Team"
+	WHERE "team_code" = $1;
+	`
+
+	if err := r.db.Get(res, queryCheckCode, req.TeamCode); err != nil {
+		return nil, fmt.Errorf("team code does not exist")
+	}
+
+	queryCheckMmeber := `
+	SELECT
+		(CASE WHEN COUNT(*) = 1 THEN TRUE ELSE FALSE END)
+	FROM "TeamMember"
+	WHERE "user_id" = $1
+	AND "team_id" = $2;
+	`
+
+	var isMember bool
+	if err := r.db.Get(&isMember, queryCheckMmeber, req.UserId, res.TeamId); err != nil {
+		return nil, fmt.Errorf("check member in team failed: %v", err)
+	}
+
+	if isMember {
+		return nil, fmt.Errorf("user already join team")
+	}
+
+	//check if code team is exist then insert team member
+	queryTeamMember := `
+	INSERT INTO "TeamMember" (
+		team_id,
+		user_id,
+		role
+		)
+	VALUES ($1, $2, $3);
+	`
+	if _, err := r.db.ExecContext(ctx,
+		queryTeamMember,
+		res.TeamId,
+		req.UserId,
+		"MEMBER",
+	); err != nil {
+		switch err.Error() {
+		case "ERROR: insert or update on table \"TeamMember\" violates foreign key constraint \"TeamMember_user_id_fkey\" (SQLSTATE 23503)":
+			return nil, fmt.Errorf("user does not exist")
+		default:
+			return nil, fmt.Errorf("insert team member failed: %v", err)
+		}
+	}
+
+	return res, nil
 }
