@@ -21,4 +21,7 @@ DROP TABLE IF EXISTS "Task" CASCADE;
 DROP SEQUENCE IF EXISTS user_id_seq;
 DROP SEQUENCE IF EXISTS team_id_seq;
 
+DROP TYPE IF EXISTS "task_status_enum";
+DROP TYPE IF EXISTS "role_enum";
+
 COMMIT;

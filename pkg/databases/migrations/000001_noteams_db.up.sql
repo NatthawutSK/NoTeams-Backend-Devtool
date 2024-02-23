@@ -44,7 +44,7 @@ CREATE TABLE "Oauth" (
 
 CREATE TABLE "Team" (
   "team_id" VARCHAR(7) PRIMARY KEY DEFAULT CONCAT('T', LPAD(NEXTVAL('team_id_seq')::TEXT, 6, '0')),
-  "team_title" VARCHAR NOT NULL,
+  "team_name" VARCHAR NOT NULL,
   "team_desc" TEXT NOT NULL,
   "team_code" VARCHAR UNIQUE NOT NULL,
   "team_poster" VARCHAR DEFAULT '',
@@ -88,7 +88,7 @@ CREATE TYPE task_status_enum AS ENUM ('TODO', 'DOING', 'DONE');
 
 CREATE TABLE "Task" (
   "task_id" uuid NOT NULL UNIQUE PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "task_title" VARCHAR NOT NULL,
+  "task_name" VARCHAR NOT NULL,
   "task_desc" TEXT NOT NULL,
   "task_status" task_status_enum  NOT NULL,
   "task_deadline" VARCHAR NOT NULL,

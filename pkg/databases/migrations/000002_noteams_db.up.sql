@@ -7,7 +7,7 @@ VALUES
   ('user3', '$2a$10$agrNUd.FI/ZLzs2xfVbpR.VV/E08UWTYvWE1R6WPknAJbygG6ifLS', 'user3@example.com' , '1990-01-01', '0822345678', 'I am user3', 'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50');
 
 -- Mock data for Team table
-INSERT INTO "Team" ("team_title", "team_desc", "team_code", "team_poster") 
+INSERT INTO "Team" ("team_name", "team_desc", "team_code", "team_poster") 
 VALUES 
 ('Development Team', 'A team focused on software development', 'DEVTEAM', ''),
 ('Marketing Team', 'Responsible for marketing activities', 'MARKTEAM', ''),
@@ -38,7 +38,7 @@ VALUES
 ('Presentation 1', '/files/pres1.pptx', 'T000003');
 
 -- Mock data for Task table
-INSERT INTO "Task" ("task_title", "task_desc", "task_status", "task_deadline", "team_id", "user_id")
+INSERT INTO "Task" ("task_name", "task_desc", "task_status", "task_deadline", "team_id", "user_id")
 VALUES
 ('Task 1', 'Complete task 1', 'TODO', '2024-02-28', 'T000001', 'U000001'),
 ('Task 2', 'Complete task 2', 'DOING', '2024-03-05', 'T000001', 'U000002'),

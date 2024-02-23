@@ -16,34 +16,16 @@ type TokenType string
 const (
 	Access  TokenType = "access"
 	Refresh TokenType = "refresh"
-	// Admin   TokenType = "admin"
-	// ApiKey  TokenType = "api_key"
 )
 
 type IRiAuth interface {
 	SignToken() string
 }
 
-// type IRiAdmin interface {
-// 	SignToken() string
-// }
-
-// type IRiApikey interface {
-// 	SignToken() string
-// }
-
 type riAuth struct {
 	mapClaims *riMapClaims
 	cfg       config.IJwtConfig
 }
-
-// type riAdmin struct {
-// 	*riAuth
-// }
-
-// type riApiKey struct {
-// 	*riAuth
-// }
 
 type riMapClaims struct {
 	Claims *users.UserClaims `json:"claims"`
@@ -162,43 +144,3 @@ func newRefreshToken(cfg config.IJwtConfig, claims *users.UserClaims) IRiAuth {
 		},
 	}
 }
-
-// use for create new admin token
-// func newAdminToken(cfg config.IJwtConfig) IRiAuth {
-// 	return &riAdmin{
-// 		&riAuth{
-// 			cfg: cfg,
-// 			mapClaims: &riMapClaims{
-// 				Claims: nil,
-// 				RegisteredClaims: jwt.RegisteredClaims{
-// 					Issuer:    "rishop-api",
-// 					Subject:   "admin-token",
-// 					Audience:  []string{"admin"},
-// 					ExpiresAt: jwtTimeDuration(300),
-// 					NotBefore: jwt.NewNumericDate(time.Now()),
-// 					IssuedAt:  jwt.NewNumericDate(time.Now()),
-// 				},
-// 			},
-// 		},
-// 	}
-// }
-
-// use for create new api key token
-// func newApiKey(cfg config.IJwtConfig) IRiAuth {
-// 	return &riApiKey{
-// 		&riAuth{
-// 			cfg: cfg,
-// 			mapClaims: &riMapClaims{
-// 				Claims: nil,
-// 				RegisteredClaims: jwt.RegisteredClaims{
-// 					Issuer:    "rishop-api",
-// 					Subject:   "api-key",
-// 					Audience:  []string{"admin", "customer"},
-// 					ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(2, 0, 0)),
-// 					NotBefore: jwt.NewNumericDate(time.Now()),
-// 					IssuedAt:  jwt.NewNumericDate(time.Now()),
-// 				},
-// 			},
-// 		},
-// 	}
-// }
