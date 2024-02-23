@@ -54,6 +54,7 @@ func (h *middlewaresHandler) Cors() fiber.Handler {
 	})
 }
 
+// ตรวจสอบว่ามี router ที่เรียกหรือไม่
 func (h *middlewaresHandler) RouterCheck() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		return entities.NewResponse(c).Error(

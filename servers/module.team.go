@@ -1,0 +1,47 @@
+package servers
+
+import (
+	"context"
+
+	"github.com/NatthawutSK/NoTeams-Backend/modules/team/teamHandler"
+	"github.com/NatthawutSK/NoTeams-Backend/modules/team/teamRepository"
+	"github.com/NatthawutSK/NoTeams-Backend/modules/team/teamUsecase"
+)
+
+type ITeamModule interface {
+	Init()
+	Repository() teamRepository.ITeamRepository
+	Usecase() teamUsecase.ITeamUsecase
+	Handler() teamHandler.ITeamHandler
+}
+
+type teamModule struct {
+	*moduleFactory
+	repository teamRepository.ITeamRepository
+	usecase    teamUsecase.ITeamUsecase
+	handler    teamHandler.ITeamHandler
+}
+
+func (m *moduleFactory) TeamModule() ITeamModule {
+	ctx := context.Background()
+	teamRepository := teamRepository.TeamRepository(m.s.db, ctx)
+	teamUsecase := teamUsecase.TeamUsecase(teamRepository, m.s.cfg)
+	teamHandler := teamHandler.TeamHandler(teamUsecase)
+	return &teamModule{
+		moduleFactory: m,
+		repository:    teamRepository,
+		usecase:       teamUsecase,
+		handler:       teamHandler,
+	}
+}
+
+func (m *teamModule) Init() {
+	router := m.r.Group("/teams")
+
+	router.Post("/", m.mid.JwtAuth(), m.handler.CreateTeam)
+
+}
+
+func (p *teamModule) Repository() teamRepository.ITeamRepository { return p.repository }
+func (p *teamModule) Usecase() teamUsecase.ITeamUsecase          { return p.usecase }
+func (p *teamModule) Handler() teamHandler.ITeamHandler          { return p.handler }

@@ -1,6 +1,8 @@
 package servers
 
 import (
+	"context"
+
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users/usersHandler"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users/usersRepository"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users/usersUsecase"
@@ -21,8 +23,9 @@ type userModule struct {
 }
 
 func (m *moduleFactory) UserModule() IUserModule {
+	ctx := context.Background()
 	// fileUsecase := filesUsecase.FilesUsecase(m.s.cfg)
-	userRepository := usersRepository.UserRepository(m.s.db)
+	userRepository := usersRepository.UserRepository(m.s.db, ctx)
 	userUsecase := usersUsecase.UserUsecase(userRepository, m.s.cfg)
 	userHandler := usersHandler.UsersHandler(userUsecase, m.s.cfg)
 	return &userModule{

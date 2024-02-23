@@ -21,19 +21,21 @@ type IUserRepository interface {
 }
 
 type usersRepository struct {
-	db *sqlx.DB
-	id string
+	db   *sqlx.DB
+	pCtx context.Context
+	id   string
 }
 
-func UserRepository(db *sqlx.DB) IUserRepository {
+func UserRepository(db *sqlx.DB, pCtx context.Context) IUserRepository {
 	return &usersRepository{
-		db: db,
+		db:   db,
+		pCtx: pCtx,
 	}
 }
 
 // insert user
 func (r *usersRepository) InsertUser(req *users.UserRegisterReq) (IUserRepository, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(r.pCtx, 5*time.Second)
 	defer cancel()
 
 	query := `
@@ -129,7 +131,7 @@ func (r *usersRepository) FindOneOauth(refreshToken string) (*users.Oauth, error
 }
 
 func (r *usersRepository) InsertOauth(req *users.UserPassport) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(r.pCtx, 10*time.Second)
 	defer cancel()
 
 	query := `
@@ -160,7 +162,7 @@ func (r *usersRepository) UpdateOauth(req *users.UserToken) error {
 		"refresh_token" = :refresh_token
 	WHERE "oauth_id" = :oauth_id;`
 
-	if _, err := r.db.NamedExecContext(context.Background(), query, req); err != nil {
+	if _, err := r.db.NamedExecContext(r.pCtx, query, req); err != nil {
 		return fmt.Errorf("update oauth failed: %v", err)
 	}
 	return nil
@@ -171,7 +173,7 @@ func (r *usersRepository) DeleteOauth(oauthId string) error {
 	DELETE FROM "Oauth"
 	WHERE "oauth_id" = $1;`
 
-	if _, err := r.db.ExecContext(context.Background(), query, oauthId); err != nil {
+	if _, err := r.db.ExecContext(r.pCtx, query, oauthId); err != nil {
 		return fmt.Errorf("oauth not found")
 	}
 	return nil
