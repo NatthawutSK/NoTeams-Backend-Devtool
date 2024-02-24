@@ -17,7 +17,7 @@ import (
 )
 
 type IFilesUsecase interface {
-	UploadFiles(req []*multipart.FileHeader) ([]*files.FileRes, error)
+	UploadFiles(req []*multipart.FileHeader, isDownload bool) ([]*files.FileRes, error)
 	// UploadFile(client *s3.Client, bucket, filename string, fileHeader *multipart.FileHeader) (string, error)
 }
 
@@ -31,9 +31,9 @@ func FilesUsecase(cfg config.IConfig) IFilesUsecase {
 	}
 }
 
-func (u *filesUsecase) UploadFiles(filesReq []*multipart.FileHeader) ([]*files.FileRes, error) {
+func (u *filesUsecase) UploadFiles(filesReq []*multipart.FileHeader, isDownload bool) ([]*files.FileRes, error) {
 	s3Client := s3Conn.S3Connect(u.cfg.S3())
-
+	contentType := "application/octet-stream"
 	filesUpload := make([]*files.FileReq, 0)
 	res := make([]*files.FileRes, 0)
 
@@ -47,7 +47,9 @@ func (u *filesUsecase) UploadFiles(filesReq []*multipart.FileHeader) ([]*files.F
 
 	for _, file := range filesReq {
 		// check file extension
-		contentType := file.Header.Get("Content-Type")
+		if !isDownload {
+			contentType = file.Header.Get("Content-Type")
+		}
 		ext := strings.TrimPrefix(filepath.Ext(file.Filename), ".")
 		if extMap[ext] != ext || extMap[ext] == "" {
 			return nil, fmt.Errorf("invalid filesReq extension")
@@ -95,32 +97,6 @@ func (u *filesUsecase) UploadFiles(filesReq []*multipart.FileHeader) ([]*files.F
 
 }
 
-// func (u *filesUsecase) UploadFile(client *s3.Client, bucket, filename string, fileHeader *multipart.FileHeader) (string, error) {
-// 	// Open the file associated with the file header
-// 	file, err := fileHeader.Open()
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	defer file.Close()
-
-// 	// Upload the file to S3
-// 	input := &s3.PutObjectInput{
-// 		Bucket:      aws.String(bucket),
-// 		Key:         aws.String(filename),
-// 		Body:        file,
-// 		ContentType: aws.String(fileHeader.Header.Get("Content-Type")),
-// 	}
-
-// 	_, err = client.PutObject(context.TODO(), input)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	// Construct the URL of the uploaded object
-// 	url := fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucket, filename)
-// 	return url, nil
-// }
-
 func (u *filesUsecase) uploadWorkers(s3Client *s3.Client, jobs <-chan *files.FileReq, result chan<- *files.FileRes, errs chan<- error) {
 
 	for job := range jobs {
@@ -130,29 +106,6 @@ func (u *filesUsecase) uploadWorkers(s3Client *s3.Client, jobs <-chan *files.Fil
 			return
 		}
 		defer f.Close()
-
-		// largeObject, err := io.ReadAll(f)
-		// if err != nil {
-		// 	errs <- fmt.Errorf("read file failed: %v", err)
-		// 	return
-		// }
-
-		// largeBuffer := bytes.NewReader(largeObject)
-
-		// var partMiBs int64 = 10
-		// uploader := manager.NewUploader(s3Client, func(u *manager.Uploader) {
-		// 	u.PartSize = partMiBs * 1024 * 1024
-		// })
-		// uploader := manager.NewUploader(s3Client)
-		// _, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
-		// 	Bucket: aws.String(bucketName),
-		// 	Key:    aws.String(objectKey),
-		// 	Body:   largeBuffer,
-		// })
-		// if err != nil {
-		// 	errs <- fmt.Errorf("put object failed: %v", err)
-		// 	return
-		// }
 
 		input := &s3.PutObjectInput{
 			Bucket:      aws.String(u.cfg.S3().S3Bucket()),
@@ -174,8 +127,6 @@ func (u *filesUsecase) uploadWorkers(s3Client *s3.Client, jobs <-chan *files.Fil
 
 		errs <- nil
 		result <- newFile
-		// Construct the URL of the uploaded object
-		// url := fmt.Sprintf("https://%s.s3.amazonaws.com/%s", u.cfg.S3().S3Bucket(), filename)
 	}
 
 }

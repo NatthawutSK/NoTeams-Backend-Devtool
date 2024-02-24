@@ -3,6 +3,7 @@ package usersRepository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users"
@@ -18,6 +19,7 @@ type IUserRepository interface {
 	DeleteOauth(oauthId string) error
 	UpdateOauth(req *users.UserToken) error
 	FindOneOauth(refreshToken string) (*users.Oauth, error)
+	UpdateUserProfile(userId string, req *users.UserUpdateProfileReq) error
 }
 
 type usersRepository struct {
@@ -197,4 +199,79 @@ func (r *usersRepository) GetProfile(userId string) (*users.User, error) {
 		return nil, fmt.Errorf("get user failed: %v", err)
 	}
 	return profile, nil
+}
+
+func (r *usersRepository) UpdateUserProfile(userId string, req *users.UserUpdateProfileReq) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 10*time.Second)
+	defer cancel()
+
+	queryWhereStack := make([]string, 0)
+	values := make([]any, 0)
+	lastIndex := 1
+
+	query := `
+	UPDATE "User" SET`
+
+	if req.Username != "" {
+		values = append(values, req.Username)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"username" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+
+	if req.Phone != "" {
+		values = append(values, req.Phone)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"phone" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+
+	if req.Dob != "" {
+		values = append(values, req.Dob)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"dob" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+	if req.Bio != "" {
+		values = append(values, req.Bio)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"bio" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+	if req.AvatarUrl != "" {
+		values = append(values, req.AvatarUrl)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"avatar" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+
+	values = append(values, userId)
+
+	queryClose := fmt.Sprintf(`
+	WHERE "user_id" = $%d;`, lastIndex)
+
+	for i := range queryWhereStack {
+		if i != len(queryWhereStack)-1 {
+			query += strings.Replace(queryWhereStack[i], "?", ",", 1)
+		} else {
+			query += strings.Replace(queryWhereStack[i], "?", "", 1)
+		}
+	}
+	query += queryClose
+
+	if _, err := r.db.ExecContext(ctx, query, values...); err != nil {
+		return fmt.Errorf("update profile user failed: %v", err)
+	}
+
+	return nil
 }

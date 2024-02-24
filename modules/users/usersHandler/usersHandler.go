@@ -19,6 +19,7 @@ const (
 	signOutErr                      userHandlerErrorCode = "user-004"
 	refreshPassportErr              userHandlerErrorCode = "user-005"
 	findOneUserByEmailOrUsernameErr userHandlerErrorCode = "user-006"
+	updateUserProfileErr            userHandlerErrorCode = "user-007"
 )
 
 type IUsersHandler interface {
@@ -28,6 +29,7 @@ type IUsersHandler interface {
 	SignOut(c *fiber.Ctx) error
 	RefreshPassport(c *fiber.Ctx) error
 	FindOneUserByEmailOrUsername(c *fiber.Ctx) error
+	UpdateUserProfile(c *fiber.Ctx) error
 }
 
 type usersHandler struct {
@@ -194,6 +196,45 @@ func (h *usersHandler) FindOneUserByEmailOrUsername(c *fiber.Ctx) error {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
 			string(findOneUserByEmailOrUsernameErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(fiber.StatusOK, result).Res()
+}
+
+func (h *usersHandler) UpdateUserProfile(c *fiber.Ctx) error {
+	req := new(users.UserUpdateProfileReq)
+	userId := strings.TrimSpace(c.Params("user_id"))
+
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(updateUserProfileErr),
+			err.Error(),
+		).Res()
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(updateUserProfileErr),
+			err.Error(),
+		).Res()
+	}
+
+	// avatarFile := []*multipart.FileHeader{}
+
+	avatarFile := form.File["avatar"]
+
+	result, err := h.usersUsecase.UpdateUserProfile(userId, req, avatarFile)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(updateUserProfileErr),
 			err.Error(),
 		).Res()
 	}

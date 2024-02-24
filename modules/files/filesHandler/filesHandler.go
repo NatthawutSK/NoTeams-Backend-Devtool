@@ -107,7 +107,7 @@ func (h *fileHandler) UploadFiles(c *fiber.Ctx) error {
 
 	// Upload the file to S3
 	// url, err := h.fileUsecase.UploadFile(s3Client, h.cfg.S3().S3Bucket(), filesReq.Filename, filesReq)
-	url, err := h.fileUsecase.UploadFiles(filesReq)
+	url, err := h.fileUsecase.UploadFiles(filesReq, true)
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,

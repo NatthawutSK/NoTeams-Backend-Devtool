@@ -21,3 +21,11 @@ type UserRefreshCredentialReq struct {
 type UserRemoveCredentialReq struct {
 	OauthId string `db:"id" json:"oauth_id" form:"oauth_id" validate:"required"`
 }
+
+type UserUpdateProfileReq struct {
+	Username  string `db:"username" json:"username" form:"username" validate:"omitempty,min=4,max=32"`
+	Dob       string `db:"dob" json:"dob" form:"dob" validate:"omitempty"`
+	Phone     string `db:"phone" json:"phone" form:"phone" validate:"omitempty,min=10,max=10,number"`
+	Bio       string `db:"bio" json:"bio" form:"bio" validate:"omitempty,min=0,max=255"`
+	AvatarUrl string `db:"avatar_url" json:"avatar_url"`
+}

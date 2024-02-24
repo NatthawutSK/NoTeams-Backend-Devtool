@@ -2,8 +2,10 @@ package usersUsecase
 
 import (
 	"fmt"
+	"mime/multipart"
 
 	"github.com/NatthawutSK/NoTeams-Backend/config"
+	"github.com/NatthawutSK/NoTeams-Backend/modules/files/filesUsecase"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users/usersRepository"
 	"github.com/NatthawutSK/NoTeams-Backend/pkg/auth"
@@ -18,17 +20,20 @@ type IUserUsecase interface {
 	GetPassport(req *users.UserLoginReq) (*users.UserPassport, error)
 	RefreshPassport(req *users.UserRefreshCredentialReq) (*users.UserPassport, error)
 	FindByEmailOrUsername(email, username string) (*users.FindMember, error)
+	UpdateUserProfile(userId string, req *users.UserUpdateProfileReq, avatarFile []*multipart.FileHeader) (*users.User, error)
 }
 
 type usersUsecase struct {
 	cfg             config.IConfig
 	usersRepository usersRepository.IUserRepository
+	fileUsecase     filesUsecase.IFilesUsecase
 }
 
 func UserUsecase(usersRepo usersRepository.IUserRepository, cfg config.IConfig) IUserUsecase {
 	return &usersUsecase{
 		usersRepository: usersRepo,
 		cfg:             cfg,
+		fileUsecase:     filesUsecase.FilesUsecase(cfg),
 	}
 }
 
@@ -181,4 +186,30 @@ func (u *usersUsecase) FindByEmailOrUsername(email, username string) (*users.Fin
 	}
 
 	return res, nil
+}
+
+func (u *usersUsecase) UpdateUserProfile(userId string, req *users.UserUpdateProfileReq, avatarFile []*multipart.FileHeader) (*users.User, error) {
+	//check avatarFile
+	if len(avatarFile) > 0 {
+		//upload avatar
+		url, err := u.fileUsecase.UploadFiles(avatarFile, false)
+		if err != nil {
+			return nil, err
+		}
+
+		req.AvatarUrl = url[0].Url
+	}
+
+	//update profile
+	if err := u.usersRepository.UpdateUserProfile(userId, req); err != nil {
+		return nil, err
+	}
+
+	//get profile
+	profile, err := u.usersRepository.GetProfile(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return profile, nil
 }
