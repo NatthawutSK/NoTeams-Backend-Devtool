@@ -27,3 +27,7 @@ type UpdatePermissionReq struct {
 	PermissionType string `json:"permission_type" form:"permission_type" validate:"required"`
 	Value          bool   `json:"value" form:"value" validate:"required"`
 }
+
+type UpdateCodeTeamReq struct {
+	TeamCode string `json:"team_code" form:"team_code" validate:"required,min=4,max=32" db:"team_code"`
+}

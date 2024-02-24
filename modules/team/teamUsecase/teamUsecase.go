@@ -22,6 +22,7 @@ type ITeamUsecase interface {
 	GetSettingTeam(teamId string) (*team.GetSettingTeamRes, error)
 	UpdateProfileTeam(userId string, req *team.UpdateTeamReq, posterFile []*multipart.FileHeader) error
 	UpdatePermission(teamId string, req *team.UpdatePermissionReq) error
+	UpdateCodeTeam(teamId string, req *team.UpdateCodeTeamReq) error
 }
 
 type teamUsecase struct {
@@ -157,6 +158,15 @@ func (u *teamUsecase) UpdatePermission(teamId string, req *team.UpdatePermission
 
 	//update permission
 	err := u.teamRepo.UpdatePermission(teamId, reqUpdate)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *teamUsecase) UpdateCodeTeam(teamId string, req *team.UpdateCodeTeamReq) error {
+	//update code team
+	err := u.teamRepo.UpdateCodeTeam(teamId, req)
 	if err != nil {
 		return err
 	}

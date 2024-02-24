@@ -22,6 +22,7 @@ type ITeamRepository interface {
 	GetSettingTeam(teamId string) (*team.GetSettingTeamRes, error)
 	UpdateTeam(teamId string, req *team.UpdateTeamReq) error
 	UpdatePermission(teamId string, req *team.UpdatePermissionReq) error
+	UpdateCodeTeam(teamId string, req *team.UpdateCodeTeamReq) error
 }
 
 type teamRepository struct {
@@ -446,6 +447,27 @@ func (r *teamRepository) UpdatePermission(teamId string, req *team.UpdatePermiss
 
 	if _, err := r.db.ExecContext(ctx, query, req.Value, teamId); err != nil {
 		return fmt.Errorf("update permission failed: %v", err)
+	}
+
+	return nil
+}
+
+func (r *teamRepository) UpdateCodeTeam(teamId string, req *team.UpdateCodeTeamReq) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	query := `
+	UPDATE "Team" SET
+		"team_code" = $1
+	WHERE "team_id" = $2;
+	`
+	if _, err := r.db.ExecContext(ctx, query, req.TeamCode, teamId); err != nil {
+		switch err.Error() {
+		case "ERROR: duplicate key value violates unique constraint \"Team_team_code_key\" (SQLSTATE 23505)":
+			return fmt.Errorf("team code has been used")
+		default:
+			return fmt.Errorf("update code team failed: %v", err)
+		}
 	}
 
 	return nil

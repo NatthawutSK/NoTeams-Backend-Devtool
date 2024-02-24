@@ -23,6 +23,7 @@ const (
 	getSettingTeamErr    teamHandlerErrorCode = "team-009"
 	updateProfileTeamErr teamHandlerErrorCode = "team-010"
 	updatePermissionErr  teamHandlerErrorCode = "team-011"
+	updateCodeTeamErr    teamHandlerErrorCode = "team-012"
 )
 
 type ITeamHandler interface {
@@ -37,6 +38,7 @@ type ITeamHandler interface {
 	GetSettingTeam(c *fiber.Ctx) error
 	UpdateProfileTeam(c *fiber.Ctx) error
 	UpdatePermissionTeam(c *fiber.Ctx) error
+	UpdateCodeTeam(c *fiber.Ctx) error
 }
 
 type teamHandler struct {
@@ -341,4 +343,38 @@ func (h *teamHandler) UpdatePermissionTeam(c *fiber.Ctx) error {
 	}
 
 	return entities.NewResponse(c).Success(fiber.StatusOK, "update permission success").Res()
+}
+
+func (h *teamHandler) UpdateCodeTeam(c *fiber.Ctx) error {
+	req := new(team.UpdateCodeTeamReq)
+	teamId := strings.TrimSpace(c.Params("team_id"))
+
+	role := c.Locals("role").(string)
+	if role != "OWNER" {
+		return entities.NewResponse(c).Error(
+			fiber.ErrUnauthorized.Code,
+			string(updateCodeTeamErr),
+			"no permission to update code team",
+		).Res()
+	}
+
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(updateCodeTeamErr),
+			err.Error(),
+		).Res()
+	}
+
+	if err := h.teamUsecase.UpdateCodeTeam(teamId, req); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(updateCodeTeamErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(fiber.StatusOK, "update code team success").Res()
 }
