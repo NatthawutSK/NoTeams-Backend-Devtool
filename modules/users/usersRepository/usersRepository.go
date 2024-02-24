@@ -20,6 +20,7 @@ type IUserRepository interface {
 	UpdateOauth(req *users.UserToken) error
 	FindOneOauth(refreshToken string) (*users.Oauth, error)
 	UpdateUserProfile(userId string, req *users.UserUpdateProfileReq) error
+	GetTeamsByUserId(userId string) ([]*users.TeamsByUserIdRes, error)
 }
 
 type usersRepository struct {
@@ -274,4 +275,25 @@ func (r *usersRepository) UpdateUserProfile(userId string, req *users.UserUpdate
 	}
 
 	return nil
+}
+
+func (r *usersRepository) GetTeamsByUserId(userId string) ([]*users.TeamsByUserIdRes, error) {
+
+	query := `
+	SELECT
+		"t"."team_id",
+		"t"."team_name",
+		"tm"."role",
+		"t"."team_poster"
+	FROM "Team" "t"
+	INNER JOIN "TeamMember" "tm"
+	ON "t"."team_id" = "tm"."team_id"
+	WHERE "tm"."user_id" = $1;`
+
+	teams := make([]*users.TeamsByUserIdRes, 0)
+	if err := r.db.Select(&teams, query, userId); err != nil {
+		return nil, fmt.Errorf("get teams by user id failed: %v", err)
+	}
+
+	return teams, nil
 }

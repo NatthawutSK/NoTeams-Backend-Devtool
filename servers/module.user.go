@@ -46,6 +46,7 @@ func (m *userModule) Init() {
 	router.Get("/profile/:user_id", m.mid.JwtAuth(), m.mid.ParamsCheck(), m.handler.GetUserProfile)
 	router.Get("/find", m.mid.JwtAuth(), m.handler.FindOneUserByEmailOrUsername)
 	router.Put("/profile/:user_id", m.mid.JwtAuth(), m.mid.ParamsCheck(), m.handler.UpdateUserProfile)
+	router.Get("/teams/:user_id", m.mid.JwtAuth(), m.mid.ParamsCheck(), m.handler.GetTeamsByUserId)
 
 }
 

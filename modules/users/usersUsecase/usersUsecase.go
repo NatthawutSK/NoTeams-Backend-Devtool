@@ -21,6 +21,7 @@ type IUserUsecase interface {
 	RefreshPassport(req *users.UserRefreshCredentialReq) (*users.UserPassport, error)
 	FindByEmailOrUsername(email, username string) (*users.FindMember, error)
 	UpdateUserProfile(userId string, req *users.UserUpdateProfileReq, avatarFile []*multipart.FileHeader) (*users.User, error)
+	GetTeamsByUserId(userId string) ([]*users.TeamsByUserIdRes, error)
 }
 
 type usersUsecase struct {
@@ -212,4 +213,12 @@ func (u *usersUsecase) UpdateUserProfile(userId string, req *users.UserUpdatePro
 	}
 
 	return profile, nil
+}
+
+func (u *usersUsecase) GetTeamsByUserId(userId string) ([]*users.TeamsByUserIdRes, error) {
+	teams, err := u.usersRepository.GetTeamsByUserId(userId)
+	if err != nil {
+		return nil, err
+	}
+	return teams, nil
 }

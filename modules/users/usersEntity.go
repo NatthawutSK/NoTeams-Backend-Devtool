@@ -47,3 +47,10 @@ type FindMember struct {
 	Avatar   string `db:"avatar" json:"avatar"`
 	Email    string `db:"email" json:"email"`
 }
+
+type TeamsByUserIdRes struct {
+	TeamId     string `db:"team_id" json:"team_id"`
+	TeamName   string `db:"team_name" json:"team_name"`
+	Role       string `db:"role" json:"role"`
+	TeamPoster string `db:"team_poster" json:"team_poster"`
+}

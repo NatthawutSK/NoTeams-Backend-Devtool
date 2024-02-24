@@ -20,6 +20,7 @@ const (
 	refreshPassportErr              userHandlerErrorCode = "user-005"
 	findOneUserByEmailOrUsernameErr userHandlerErrorCode = "user-006"
 	updateUserProfileErr            userHandlerErrorCode = "user-007"
+	getTeamsByUserIdErr             userHandlerErrorCode = "user-008"
 )
 
 type IUsersHandler interface {
@@ -30,6 +31,7 @@ type IUsersHandler interface {
 	RefreshPassport(c *fiber.Ctx) error
 	FindOneUserByEmailOrUsername(c *fiber.Ctx) error
 	UpdateUserProfile(c *fiber.Ctx) error
+	GetTeamsByUserId(c *fiber.Ctx) error
 }
 
 type usersHandler struct {
@@ -235,6 +237,21 @@ func (h *usersHandler) UpdateUserProfile(c *fiber.Ctx) error {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
 			string(updateUserProfileErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(fiber.StatusOK, result).Res()
+}
+
+func (h *usersHandler) GetTeamsByUserId(c *fiber.Ctx) error {
+	userId := strings.TrimSpace(c.Params("user_id"))
+
+	result, err := h.usersUsecase.GetTeamsByUserId(userId)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(getTeamsByUserIdErr),
 			err.Error(),
 		).Res()
 	}
