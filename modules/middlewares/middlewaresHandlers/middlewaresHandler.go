@@ -19,6 +19,9 @@ const (
 	jwtAuthErr     middlewareHandlersErrCode = "middleware-002"
 	paramsCheckErr middlewareHandlersErrCode = "middleware-003"
 	authTeam       middlewareHandlersErrCode = "middleware-004"
+	IsAllowInvite  middlewareHandlersErrCode = "middleware-005"
+	IsAllowTask    middlewareHandlersErrCode = "middleware-006"
+	IsAllowFile    middlewareHandlersErrCode = "middleware-007"
 )
 
 type IMiddlewaresHandler interface {
@@ -192,7 +195,7 @@ func (h *middlewaresHandler) IsAllowInvite() fiber.Handler {
 		if !check {
 			return entities.NewResponse(c).Error(
 				fiber.ErrUnauthorized.Code,
-				string(authTeam),
+				string(IsAllowInvite),
 				"no permission to invite member",
 			).Res()
 		}
@@ -213,7 +216,7 @@ func (h *middlewaresHandler) IsAllowTask() fiber.Handler {
 		if !check {
 			return entities.NewResponse(c).Error(
 				fiber.ErrUnauthorized.Code,
-				string(authTeam),
+				string(IsAllowTask),
 				"no permission to manage task",
 			).Res()
 		}
@@ -234,7 +237,7 @@ func (h *middlewaresHandler) IsAllowFile() fiber.Handler {
 		if !check {
 			return entities.NewResponse(c).Error(
 				fiber.ErrUnauthorized.Code,
-				string(authTeam),
+				string(IsAllowFile),
 				"no permission to manage file",
 			).Res()
 		}

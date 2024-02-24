@@ -23,3 +23,10 @@ type GetTeamByUserIdRes struct {
 	TeamName   string `json:"team_name" db:"team_name"`
 	TeamPoster string `json:"team_poster" db:"team_poster"`
 }
+
+type GetMemberTeamRes struct {
+	MemberId string `json:"member_id" db:"member_id"`
+	Username string `json:"username" db:"username"`
+	Email    string `json:"email" db:"email"`
+	Role     string `json:"role" db:"role"`
+}

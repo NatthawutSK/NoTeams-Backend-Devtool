@@ -17,6 +17,8 @@ const (
 	joinTeamErr     teamHandlerErrorCode = "team-003"
 	getTeamByUserId teamHandlerErrorCode = "team-004"
 	inviteMemberErr teamHandlerErrorCode = "team-005"
+	getMemberTeam   teamHandlerErrorCode = "team-006"
+	deleteMember    teamHandlerErrorCode = "team-007"
 )
 
 type ITeamHandler interface {
@@ -25,6 +27,8 @@ type ITeamHandler interface {
 	JoinTeam(c *fiber.Ctx) error
 	GetTeamByUserId(c *fiber.Ctx) error
 	InviteMember(c *fiber.Ctx) error
+	GetMemberTeam(c *fiber.Ctx) error
+	DeleteMember(c *fiber.Ctx) error
 }
 
 type teamHandler struct {
@@ -156,5 +160,50 @@ func (h *teamHandler) InviteMember(c *fiber.Ctx) error {
 	return entities.NewResponse(c).Success(
 		fiber.StatusOK,
 		"invite member success",
+	).Res()
+}
+
+func (h *teamHandler) GetMemberTeam(c *fiber.Ctx) error {
+	teamId := strings.TrimSpace(c.Params("team_id"))
+
+	result, err := h.teamUsecase.GetMemberTeam(teamId)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(getMemberTeam),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		result,
+	).Res()
+}
+
+func (h *teamHandler) DeleteMember(c *fiber.Ctx) error {
+	memberId := strings.TrimSpace(c.Params("member_id"))
+
+	role := c.Locals("role").(string)
+	if role != "OWNER" {
+		return entities.NewResponse(c).Error(
+			fiber.ErrUnauthorized.Code,
+			string(deleteMember),
+			"no permission to delete member",
+		).Res()
+	}
+
+	err := h.teamUsecase.DeleteMember(memberId)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(deleteMember),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		"delete member success",
 	).Res()
 }

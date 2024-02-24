@@ -15,6 +15,8 @@ type ITeamRepository interface {
 	JoinTeam(req *team.JoinTeamReq) (*team.JoinTeamRes, error)
 	GetTeamByUserId(userId string) ([]*team.GetTeamByUserIdRes, error)
 	InviteMember(team_id string, req *team.InviteMemberReq) error
+	GetMemberTeam(teamId string) ([]*team.GetMemberTeamRes, error)
+	DeleteMember(memberId string) error
 }
 
 type teamRepository struct {
@@ -272,6 +274,59 @@ func (r *teamRepository) InviteMember(team_id string, req *team.InviteMemberReq)
 				return fmt.Errorf("invite member failed: %v", err)
 			}
 		}
+	}
+
+	return nil
+}
+
+func (r *teamRepository) GetMemberTeam(teamId string) ([]*team.GetMemberTeamRes, error) {
+	query := `
+	SELECT
+		"tm"."member_id",
+		"u"."username",
+		"u"."email",
+		"tm"."role"
+	FROM "User" "u"
+	INNER JOIN "TeamMember" "tm"
+	ON "u"."user_id" = "tm"."user_id"
+	WHERE "tm"."team_id" = $1;
+	`
+	members := make([]*team.GetMemberTeamRes, 0)
+	if err := r.db.Select(&members, query, teamId); err != nil {
+		return nil, fmt.Errorf("get member team failed: %v", err)
+	}
+
+	return members, nil
+}
+
+func (r *teamRepository) DeleteMember(memberId string) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	//check if member is owner then return error
+	queryCheckOwner := `
+	SELECT
+		(CASE WHEN COUNT(*) = 1 THEN TRUE ELSE FALSE END)
+	FROM "TeamMember"
+	WHERE "member_id" = $1
+	AND "role" = 'OWNER';
+	`
+
+	var isOwner bool
+	if err := r.db.Get(&isOwner, queryCheckOwner, memberId); err != nil {
+		return fmt.Errorf("check owner failed: %v", err)
+	}
+
+	if isOwner {
+		return fmt.Errorf("cannot delete owner")
+	}
+
+	query := `
+	DELETE FROM "TeamMember"
+	WHERE "member_id" = $1;
+	`
+	if _, err := r.db.ExecContext(ctx, query, memberId); err != nil {
+		return fmt.Errorf("delete member failed: %v", err)
 	}
 
 	return nil

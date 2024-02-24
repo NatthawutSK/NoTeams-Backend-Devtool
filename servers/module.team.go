@@ -43,6 +43,8 @@ func (m *teamModule) Init() {
 	router.Post("/join", m.mid.JwtAuth(), m.handler.JoinTeam)
 	router.Get("/user/:user_id", m.mid.JwtAuth(), m.mid.ParamsCheck(), m.handler.GetTeamByUserId)
 	router.Post("/invite/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.mid.IsAllowInvite(), m.handler.InviteMember)
+	router.Get("/member/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.handler.GetMemberTeam)
+	router.Delete("/:team_id/member/:member_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.handler.DeleteMember)
 
 }
 
