@@ -21,6 +21,7 @@ type ITeamRepository interface {
 	GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error)
 	GetSettingTeam(teamId string) (*team.GetSettingTeamRes, error)
 	UpdateTeam(teamId string, req *team.UpdateTeamReq) error
+	UpdatePermission(teamId string, req *team.UpdatePermissionReq) error
 }
 
 type teamRepository struct {
@@ -428,6 +429,23 @@ func (r *teamRepository) UpdateTeam(teamId string, req *team.UpdateTeamReq) erro
 
 	if _, err := r.db.ExecContext(ctx, query, values...); err != nil {
 		return fmt.Errorf("update profile team failed: %v", err)
+	}
+
+	return nil
+}
+
+func (r *teamRepository) UpdatePermission(teamId string, req *team.UpdatePermissionReq) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	query := fmt.Sprintf(`
+    UPDATE "Permission" SET
+        %s = $1
+    WHERE "team_id" = $2;
+    `, req.PermissionType)
+
+	if _, err := r.db.ExecContext(ctx, query, req.Value, teamId); err != nil {
+		return fmt.Errorf("update permission failed: %v", err)
 	}
 
 	return nil

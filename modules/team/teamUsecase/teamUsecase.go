@@ -21,6 +21,7 @@ type ITeamUsecase interface {
 	GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error)
 	GetSettingTeam(teamId string) (*team.GetSettingTeamRes, error)
 	UpdateProfileTeam(userId string, req *team.UpdateTeamReq, posterFile []*multipart.FileHeader) error
+	UpdatePermission(teamId string, req *team.UpdatePermissionReq) error
 }
 
 type teamUsecase struct {
@@ -132,5 +133,32 @@ func (u *teamUsecase) UpdateProfileTeam(teamId string, req *team.UpdateTeamReq, 
 		return err
 	}
 
+	return nil
+}
+
+func (u *teamUsecase) UpdatePermission(teamId string, req *team.UpdatePermissionReq) error {
+	// check permissionType must be task | file | invite use map
+	permissionTypeMap := map[string]string{
+		"task":   "\"allow_task\"",
+		"file":   "allow_file",
+		"invite": "allow_invite",
+	}
+
+	//check permissionType
+	if _, ok := permissionTypeMap[req.PermissionType]; !ok {
+		return fmt.Errorf("invalid permission type")
+	}
+
+	//update type permission
+	reqUpdate := &team.UpdatePermissionReq{
+		PermissionType: permissionTypeMap[req.PermissionType],
+		Value:          req.Value,
+	}
+
+	//update permission
+	err := u.teamRepo.UpdatePermission(teamId, reqUpdate)
+	if err != nil {
+		return err
+	}
 	return nil
 }

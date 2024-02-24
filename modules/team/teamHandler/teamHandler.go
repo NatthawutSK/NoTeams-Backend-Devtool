@@ -13,15 +13,16 @@ type teamHandlerErrorCode string
 
 const (
 	createTeamErr        teamHandlerErrorCode = "team-001"
-	getTeamById          teamHandlerErrorCode = "team-002"
+	getTeamByIdErr       teamHandlerErrorCode = "team-002"
 	joinTeamErr          teamHandlerErrorCode = "team-003"
-	getTeamByUserId      teamHandlerErrorCode = "team-004"
+	getTeamByUserIdErr   teamHandlerErrorCode = "team-004"
 	inviteMemberErr      teamHandlerErrorCode = "team-005"
-	getMemberTeam        teamHandlerErrorCode = "team-006"
-	deleteMember         teamHandlerErrorCode = "team-007"
-	getAboutTeam         teamHandlerErrorCode = "team-008"
-	GetSettingTeam       teamHandlerErrorCode = "team-009"
-	UpdateProfileTeamErr teamHandlerErrorCode = "team-010"
+	getMemberTeamErr     teamHandlerErrorCode = "team-006"
+	deleteMemberErr      teamHandlerErrorCode = "team-007"
+	getAboutTeamErr      teamHandlerErrorCode = "team-008"
+	getSettingTeamErr    teamHandlerErrorCode = "team-009"
+	updateProfileTeamErr teamHandlerErrorCode = "team-010"
+	updatePermissionErr  teamHandlerErrorCode = "team-011"
 )
 
 type ITeamHandler interface {
@@ -35,6 +36,7 @@ type ITeamHandler interface {
 	GetAboutTeam(c *fiber.Ctx) error
 	GetSettingTeam(c *fiber.Ctx) error
 	UpdateProfileTeam(c *fiber.Ctx) error
+	UpdatePermissionTeam(c *fiber.Ctx) error
 }
 
 type teamHandler struct {
@@ -84,7 +86,7 @@ func (h *teamHandler) GetTeamById(c *fiber.Ctx) error {
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
-			string(getTeamById),
+			string(getTeamByIdErr),
 			err.Error(),
 		).Res()
 	}
@@ -132,7 +134,7 @@ func (h *teamHandler) GetTeamByUserId(c *fiber.Ctx) error {
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
-			string(getTeamByUserId),
+			string(getTeamByUserIdErr),
 			err.Error(),
 		).Res()
 	}
@@ -179,7 +181,7 @@ func (h *teamHandler) GetMemberTeam(c *fiber.Ctx) error {
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
-			string(getMemberTeam),
+			string(getMemberTeamErr),
 			err.Error(),
 		).Res()
 	}
@@ -197,7 +199,7 @@ func (h *teamHandler) DeleteMember(c *fiber.Ctx) error {
 	if role != "OWNER" {
 		return entities.NewResponse(c).Error(
 			fiber.ErrUnauthorized.Code,
-			string(deleteMember),
+			string(deleteMemberErr),
 			"no permission to delete member",
 		).Res()
 	}
@@ -206,7 +208,7 @@ func (h *teamHandler) DeleteMember(c *fiber.Ctx) error {
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
-			string(deleteMember),
+			string(deleteMemberErr),
 			err.Error(),
 		).Res()
 	}
@@ -224,7 +226,7 @@ func (h *teamHandler) GetAboutTeam(c *fiber.Ctx) error {
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
-			string(getAboutTeam),
+			string(getAboutTeamErr),
 			err.Error(),
 		).Res()
 	}
@@ -242,7 +244,7 @@ func (h *teamHandler) GetSettingTeam(c *fiber.Ctx) error {
 	if role != "OWNER" {
 		return entities.NewResponse(c).Error(
 			fiber.ErrUnauthorized.Code,
-			string(deleteMember),
+			string(getSettingTeamErr),
 			"no permission to get setting team",
 		).Res()
 	}
@@ -251,7 +253,7 @@ func (h *teamHandler) GetSettingTeam(c *fiber.Ctx) error {
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
-			string(GetSettingTeam),
+			string(getSettingTeamErr),
 			err.Error(),
 		).Res()
 	}
@@ -270,7 +272,7 @@ func (h *teamHandler) UpdateProfileTeam(c *fiber.Ctx) error {
 	if role != "OWNER" {
 		return entities.NewResponse(c).Error(
 			fiber.ErrUnauthorized.Code,
-			string(deleteMember),
+			string(updateProfileTeamErr),
 			"no permission to pdate profile team",
 		).Res()
 	}
@@ -280,7 +282,7 @@ func (h *teamHandler) UpdateProfileTeam(c *fiber.Ctx) error {
 	if err := validate.BindRi(req); err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
-			string(UpdateProfileTeamErr),
+			string(updateProfileTeamErr),
 			err.Error(),
 		).Res()
 	}
@@ -289,7 +291,7 @@ func (h *teamHandler) UpdateProfileTeam(c *fiber.Ctx) error {
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
-			string(UpdateProfileTeamErr),
+			string(updateProfileTeamErr),
 			err.Error(),
 		).Res()
 	}
@@ -299,10 +301,44 @@ func (h *teamHandler) UpdateProfileTeam(c *fiber.Ctx) error {
 	if err := h.teamUsecase.UpdateProfileTeam(teamId, req, avatarFile); err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
-			string(UpdateProfileTeamErr),
+			string(updateProfileTeamErr),
 			err.Error(),
 		).Res()
 	}
 
 	return entities.NewResponse(c).Success(fiber.StatusOK, "update team profile success").Res()
+}
+
+func (h *teamHandler) UpdatePermissionTeam(c *fiber.Ctx) error {
+	req := new(team.UpdatePermissionReq)
+	teamId := strings.TrimSpace(c.Params("team_id"))
+
+	role := c.Locals("role").(string)
+	if role != "OWNER" {
+		return entities.NewResponse(c).Error(
+			fiber.ErrUnauthorized.Code,
+			string(updatePermissionErr),
+			"no permission to update permission team",
+		).Res()
+	}
+
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(updatePermissionErr),
+			err.Error(),
+		).Res()
+	}
+
+	if err := h.teamUsecase.UpdatePermission(teamId, req); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(updatePermissionErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(fiber.StatusOK, "update permission success").Res()
 }

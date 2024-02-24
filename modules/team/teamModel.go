@@ -22,3 +22,8 @@ type UpdateTeamReq struct {
 	TeamDesc   string `json:"team_desc" form:"team_desc" validate:"omitempty,min=0,max=255" db:"team_desc"`
 	TeamPoster string `json:"team_poster" form:"team_poster" db:"team_poster"`
 }
+
+type UpdatePermissionReq struct {
+	PermissionType string `json:"permission_type" form:"permission_type" validate:"required"`
+	Value          bool   `json:"value" form:"value" validate:"required"`
+}
