@@ -16,3 +16,9 @@ type JoinTeamReq struct {
 type InviteMemberReq struct {
 	Users []*string `json:"users" form:"users" validate:"required" db:"users"`
 }
+
+// type UpdateTeamReq struct {
+// 	TeamName   string `json:"team_name" form:"team_name" validate:"omitempty,min=1,max=32" db:"team_name"`
+// 	TeamDesc   string `json:"team_desc" form:"team_desc" validate:"omitempty,min=0,max=255" db:"team_desc"`
+// 	TeamPoster string `json:"team_poster" form:"team_poster" validate:"omitempty" db:"team_poster"`
+// }

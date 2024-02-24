@@ -37,3 +37,13 @@ type GetAboutTeamRes struct {
 	TeamDesc   string `json:"team_desc" db:"team_desc"`
 	TeamPoster string `json:"team_poster" db:"team_poster"`
 }
+
+type GetSettingTeamRes struct {
+	TeamName    string `json:"team_name" db:"team_name"`
+	TeamDesc    string `json:"team_desc" db:"team_desc"`
+	TeamPoster  string `json:"team_poster" db:"team_poster"`
+	TeamCode    string `json:"team_code" db:"team_code"`
+	AllowTask   bool   `json:"allow_task" db:"allow_task"`
+	AllowFile   bool   `json:"allow_file" db:"allow_file"`
+	AllowInvite bool   `json:"allow_invite" db:"allow_invite"`
+}

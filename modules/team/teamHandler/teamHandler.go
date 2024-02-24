@@ -19,6 +19,8 @@ const (
 	inviteMemberErr teamHandlerErrorCode = "team-005"
 	getMemberTeam   teamHandlerErrorCode = "team-006"
 	deleteMember    teamHandlerErrorCode = "team-007"
+	getAboutTeam    teamHandlerErrorCode = "team-008"
+	GetSettingTeam  teamHandlerErrorCode = "team-009"
 )
 
 type ITeamHandler interface {
@@ -30,6 +32,7 @@ type ITeamHandler interface {
 	GetMemberTeam(c *fiber.Ctx) error
 	DeleteMember(c *fiber.Ctx) error
 	GetAboutTeam(c *fiber.Ctx) error
+	GetSettingTeam(c *fiber.Ctx) error
 }
 
 type teamHandler struct {
@@ -219,7 +222,34 @@ func (h *teamHandler) GetAboutTeam(c *fiber.Ctx) error {
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
-			string(getMemberTeam),
+			string(getAboutTeam),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		result,
+	).Res()
+}
+
+func (h *teamHandler) GetSettingTeam(c *fiber.Ctx) error {
+	teamId := strings.TrimSpace(c.Params("team_id"))
+
+	role := c.Locals("role").(string)
+	if role != "OWNER" {
+		return entities.NewResponse(c).Error(
+			fiber.ErrUnauthorized.Code,
+			string(deleteMember),
+			"no permission to get setting team",
+		).Res()
+	}
+
+	result, err := h.teamUsecase.GetSettingTeam(teamId)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(GetSettingTeam),
 			err.Error(),
 		).Res()
 	}

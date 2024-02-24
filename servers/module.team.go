@@ -46,6 +46,7 @@ func (m *teamModule) Init() {
 	router.Get("/member/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.handler.GetMemberTeam)
 	router.Delete("/:team_id/member/:member_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.handler.DeleteMember)
 	router.Get("/about/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.handler.GetAboutTeam)
+	router.Get("/setting/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.handler.GetSettingTeam)
 
 }
 

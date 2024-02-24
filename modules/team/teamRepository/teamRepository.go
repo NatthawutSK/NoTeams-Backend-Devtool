@@ -18,6 +18,8 @@ type ITeamRepository interface {
 	GetMemberTeam(teamId string) ([]*team.GetMemberTeamRes, error)
 	DeleteMember(memberId string) error
 	GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error)
+	GetSettingTeam(teamId string) (*team.GetSettingTeamRes, error)
+	// UpdateTeam(req *team.UpdateTeamReq) (*team.UpdateTeamRes, error)
 }
 
 type teamRepository struct {
@@ -348,4 +350,27 @@ func (r *teamRepository) GetAboutTeam(teamId string) (*team.GetAboutTeamRes, err
 	}
 
 	return about, nil
+}
+
+func (r *teamRepository) GetSettingTeam(teamId string) (*team.GetSettingTeamRes, error) {
+	query := `
+	SELECT
+		"t"."team_name",
+		"t"."team_desc",
+		"t"."team_poster",
+		"t"."team_code",
+		"p"."allow_task",
+		"p"."allow_file",
+		"p"."allow_invite"
+	FROM "Team" "t"
+	INNER JOIN "Permission" "p"
+	ON "t"."team_id" = "p"."team_id"
+	WHERE "t"."team_id" = $1;
+	`
+	setting := new(team.GetSettingTeamRes)
+	if err := r.db.Get(setting, query, teamId); err != nil {
+		return nil, fmt.Errorf("get setting team failed: %v", err)
+	}
+
+	return setting, nil
 }

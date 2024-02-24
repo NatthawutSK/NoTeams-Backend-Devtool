@@ -15,6 +15,7 @@ type ITeamUsecase interface {
 	GetMemberTeam(teamId string) ([]*team.GetMemberTeamRes, error)
 	DeleteMember(memberId string) error
 	GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error)
+	GetSettingTeam(teamId string) (*team.GetSettingTeamRes, error)
 }
 
 type teamUsecase struct {
@@ -87,6 +88,14 @@ func (u *teamUsecase) DeleteMember(memberId string) error {
 
 func (u *teamUsecase) GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error) {
 	result, err := u.teamRepo.GetAboutTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (u *teamUsecase) GetSettingTeam(teamId string) (*team.GetSettingTeamRes, error) {
+	result, err := u.teamRepo.GetSettingTeam(teamId)
 	if err != nil {
 		return nil, err
 	}
