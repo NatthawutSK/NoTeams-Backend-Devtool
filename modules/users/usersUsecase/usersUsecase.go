@@ -192,6 +192,11 @@ func (u *usersUsecase) FindByEmailOrUsername(email, username string) (*users.Fin
 func (u *usersUsecase) UpdateUserProfile(userId string, req *users.UserUpdateProfileReq, avatarFile []*multipart.FileHeader) (*users.User, error) {
 	//check avatarFile
 	if len(avatarFile) > 0 {
+		//check len of avatarFile must be 1
+		if len(avatarFile) > 1 {
+			return nil, fmt.Errorf("avatar file must be 1")
+		}
+
 		//upload avatar
 		url, err := u.fileUsecase.UploadFiles(avatarFile, false)
 		if err != nil {

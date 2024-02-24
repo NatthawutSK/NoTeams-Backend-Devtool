@@ -1,7 +1,11 @@
 package teamUsecase
 
 import (
+	"fmt"
+	"mime/multipart"
+
 	"github.com/NatthawutSK/NoTeams-Backend/config"
+	"github.com/NatthawutSK/NoTeams-Backend/modules/files/filesUsecase"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/team"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/team/teamRepository"
 )
@@ -16,17 +20,20 @@ type ITeamUsecase interface {
 	DeleteMember(memberId string) error
 	GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error)
 	GetSettingTeam(teamId string) (*team.GetSettingTeamRes, error)
+	UpdateProfileTeam(userId string, req *team.UpdateTeamReq, posterFile []*multipart.FileHeader) error
 }
 
 type teamUsecase struct {
-	teamRepo teamRepository.ITeamRepository
-	cfg      config.IConfig
+	teamRepo    teamRepository.ITeamRepository
+	cfg         config.IConfig
+	fileUsecase filesUsecase.IFilesUsecase
 }
 
 func TeamUsecase(teamRepo teamRepository.ITeamRepository, cfg config.IConfig) ITeamUsecase {
 	return &teamUsecase{
-		teamRepo: teamRepo,
-		cfg:      cfg,
+		teamRepo:    teamRepo,
+		cfg:         cfg,
+		fileUsecase: filesUsecase.FilesUsecase(cfg),
 	}
 }
 
@@ -100,4 +107,30 @@ func (u *teamUsecase) GetSettingTeam(teamId string) (*team.GetSettingTeamRes, er
 		return nil, err
 	}
 	return result, nil
+}
+
+func (u *teamUsecase) UpdateProfileTeam(teamId string, req *team.UpdateTeamReq, posterFile []*multipart.FileHeader) error {
+	//check avatarFile
+
+	if len(posterFile) > 0 {
+		//check len of posterFile must be 1
+		if len(posterFile) > 1 {
+			return fmt.Errorf("poster file must be 1")
+		}
+
+		//upload poster
+		url, err := u.fileUsecase.UploadFiles(posterFile, false)
+		if err != nil {
+			return err
+		}
+
+		req.TeamPoster = url[0].Url
+	}
+
+	//update profile team
+	if err := u.teamRepo.UpdateTeam(teamId, req); err != nil {
+		return err
+	}
+
+	return nil
 }

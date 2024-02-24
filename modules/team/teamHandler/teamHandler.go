@@ -12,15 +12,16 @@ import (
 type teamHandlerErrorCode string
 
 const (
-	createTeamErr   teamHandlerErrorCode = "team-001"
-	getTeamById     teamHandlerErrorCode = "team-002"
-	joinTeamErr     teamHandlerErrorCode = "team-003"
-	getTeamByUserId teamHandlerErrorCode = "team-004"
-	inviteMemberErr teamHandlerErrorCode = "team-005"
-	getMemberTeam   teamHandlerErrorCode = "team-006"
-	deleteMember    teamHandlerErrorCode = "team-007"
-	getAboutTeam    teamHandlerErrorCode = "team-008"
-	GetSettingTeam  teamHandlerErrorCode = "team-009"
+	createTeamErr        teamHandlerErrorCode = "team-001"
+	getTeamById          teamHandlerErrorCode = "team-002"
+	joinTeamErr          teamHandlerErrorCode = "team-003"
+	getTeamByUserId      teamHandlerErrorCode = "team-004"
+	inviteMemberErr      teamHandlerErrorCode = "team-005"
+	getMemberTeam        teamHandlerErrorCode = "team-006"
+	deleteMember         teamHandlerErrorCode = "team-007"
+	getAboutTeam         teamHandlerErrorCode = "team-008"
+	GetSettingTeam       teamHandlerErrorCode = "team-009"
+	UpdateProfileTeamErr teamHandlerErrorCode = "team-010"
 )
 
 type ITeamHandler interface {
@@ -33,6 +34,7 @@ type ITeamHandler interface {
 	DeleteMember(c *fiber.Ctx) error
 	GetAboutTeam(c *fiber.Ctx) error
 	GetSettingTeam(c *fiber.Ctx) error
+	UpdateProfileTeam(c *fiber.Ctx) error
 }
 
 type teamHandler struct {
@@ -258,4 +260,49 @@ func (h *teamHandler) GetSettingTeam(c *fiber.Ctx) error {
 		fiber.StatusOK,
 		result,
 	).Res()
+}
+
+func (h *teamHandler) UpdateProfileTeam(c *fiber.Ctx) error {
+	req := new(team.UpdateTeamReq)
+	teamId := strings.TrimSpace(c.Params("team_id"))
+
+	role := c.Locals("role").(string)
+	if role != "OWNER" {
+		return entities.NewResponse(c).Error(
+			fiber.ErrUnauthorized.Code,
+			string(deleteMember),
+			"no permission to pdate profile team",
+		).Res()
+	}
+
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(UpdateProfileTeamErr),
+			err.Error(),
+		).Res()
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(UpdateProfileTeamErr),
+			err.Error(),
+		).Res()
+	}
+
+	avatarFile := form.File["team_poster"]
+
+	if err := h.teamUsecase.UpdateProfileTeam(teamId, req, avatarFile); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(UpdateProfileTeamErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(fiber.StatusOK, "update team profile success").Res()
 }

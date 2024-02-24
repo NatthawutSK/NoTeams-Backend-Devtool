@@ -3,6 +3,7 @@ package teamRepository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/NatthawutSK/NoTeams-Backend/modules/team"
@@ -19,7 +20,7 @@ type ITeamRepository interface {
 	DeleteMember(memberId string) error
 	GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error)
 	GetSettingTeam(teamId string) (*team.GetSettingTeamRes, error)
-	// UpdateTeam(req *team.UpdateTeamReq) (*team.UpdateTeamRes, error)
+	UpdateTeam(teamId string, req *team.UpdateTeamReq) error
 }
 
 type teamRepository struct {
@@ -373,4 +374,61 @@ func (r *teamRepository) GetSettingTeam(teamId string) (*team.GetSettingTeamRes,
 	}
 
 	return setting, nil
+}
+
+func (r *teamRepository) UpdateTeam(teamId string, req *team.UpdateTeamReq) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	queryWhereStack := make([]string, 0)
+	values := make([]any, 0)
+	lastIndex := 1
+
+	query := `
+	UPDATE "Team" SET`
+
+	if req.TeamName != "" {
+		values = append(values, req.TeamName)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"team_name" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+	if req.TeamDesc != "" {
+		values = append(values, req.TeamDesc)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"team_desc" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+	if req.TeamPoster != "" {
+		values = append(values, req.TeamPoster)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"team_poster" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+
+	values = append(values, teamId)
+
+	queryClose := fmt.Sprintf(`
+	WHERE "team_id" = $%d;`, lastIndex)
+
+	for i := range queryWhereStack {
+		if i != len(queryWhereStack)-1 {
+			query += strings.Replace(queryWhereStack[i], "?", ",", 1)
+		} else {
+			query += strings.Replace(queryWhereStack[i], "?", "", 1)
+		}
+	}
+	query += queryClose
+
+	if _, err := r.db.ExecContext(ctx, query, values...); err != nil {
+		return fmt.Errorf("update profile team failed: %v", err)
+	}
+
+	return nil
 }
