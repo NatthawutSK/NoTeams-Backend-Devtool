@@ -14,6 +14,7 @@ type ITeamUsecase interface {
 	InviteMember(team_id string, req *team.InviteMemberReq) error
 	GetMemberTeam(teamId string) ([]*team.GetMemberTeamRes, error)
 	DeleteMember(memberId string) error
+	GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error)
 }
 
 type teamUsecase struct {
@@ -82,4 +83,12 @@ func (u *teamUsecase) DeleteMember(memberId string) error {
 		return err
 	}
 	return nil
+}
+
+func (u *teamUsecase) GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error) {
+	result, err := u.teamRepo.GetAboutTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }

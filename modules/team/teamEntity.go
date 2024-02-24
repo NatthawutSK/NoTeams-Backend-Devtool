@@ -30,3 +30,9 @@ type GetMemberTeamRes struct {
 	Email    string `json:"email" db:"email"`
 	Role     string `json:"role" db:"role"`
 }
+
+type GetAboutTeamRes struct {
+	TeamName   string `json:"team_name" db:"team_name"`
+	TeamDesc   string `json:"team_desc" db:"team_desc"`
+	TeamPoster string `json:"team_poster" db:"team_poster"`
+}

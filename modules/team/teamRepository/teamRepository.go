@@ -17,6 +17,7 @@ type ITeamRepository interface {
 	InviteMember(team_id string, req *team.InviteMemberReq) error
 	GetMemberTeam(teamId string) ([]*team.GetMemberTeamRes, error)
 	DeleteMember(memberId string) error
+	GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error)
 }
 
 type teamRepository struct {
@@ -330,4 +331,21 @@ func (r *teamRepository) DeleteMember(memberId string) error {
 	}
 
 	return nil
+}
+
+func (r *teamRepository) GetAboutTeam(teamId string) (*team.GetAboutTeamRes, error) {
+	query := `
+	SELECT
+		"team_name",
+		"team_desc",
+		"team_poster"
+	FROM "Team"
+	WHERE "team_id" = $1;
+	`
+	about := new(team.GetAboutTeamRes)
+	if err := r.db.Get(about, query, teamId); err != nil {
+		return nil, fmt.Errorf("get about team failed: %v", err)
+	}
+
+	return about, nil
 }

@@ -29,6 +29,7 @@ type ITeamHandler interface {
 	InviteMember(c *fiber.Ctx) error
 	GetMemberTeam(c *fiber.Ctx) error
 	DeleteMember(c *fiber.Ctx) error
+	GetAboutTeam(c *fiber.Ctx) error
 }
 
 type teamHandler struct {
@@ -205,5 +206,23 @@ func (h *teamHandler) DeleteMember(c *fiber.Ctx) error {
 	return entities.NewResponse(c).Success(
 		fiber.StatusOK,
 		"delete member success",
+	).Res()
+}
+
+func (h *teamHandler) GetAboutTeam(c *fiber.Ctx) error {
+	teamId := strings.TrimSpace(c.Params("team_id"))
+
+	result, err := h.teamUsecase.GetAboutTeam(teamId)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(getMemberTeam),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		result,
 	).Res()
 }
