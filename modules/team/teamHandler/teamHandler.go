@@ -73,6 +73,7 @@ func (h *teamHandler) CreateTeam(c *fiber.Ctx) error {
 
 func (h *teamHandler) GetTeamById(c *fiber.Ctx) error {
 	teamId := strings.TrimSpace(c.Params("team_id"))
+	role := c.Locals("role").(string)
 
 	result, err := h.teamUsecase.GetTeamById(teamId)
 	if err != nil {
@@ -82,6 +83,8 @@ func (h *teamHandler) GetTeamById(c *fiber.Ctx) error {
 			err.Error(),
 		).Res()
 	}
+
+	result.UserRole = role
 
 	return entities.NewResponse(c).Success(
 		fiber.StatusOK,
