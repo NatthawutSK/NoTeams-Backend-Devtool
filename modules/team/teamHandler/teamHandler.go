@@ -16,6 +16,7 @@ const (
 	getTeamById     teamHandlerErrorCode = "team-002"
 	joinTeamErr     teamHandlerErrorCode = "team-003"
 	getTeamByUserId teamHandlerErrorCode = "team-004"
+	inviteMemberErr teamHandlerErrorCode = "team-005"
 )
 
 type ITeamHandler interface {
@@ -23,6 +24,7 @@ type ITeamHandler interface {
 	GetTeamById(c *fiber.Ctx) error
 	JoinTeam(c *fiber.Ctx) error
 	GetTeamByUserId(c *fiber.Ctx) error
+	InviteMember(c *fiber.Ctx) error
 }
 
 type teamHandler struct {
@@ -125,5 +127,34 @@ func (h *teamHandler) GetTeamByUserId(c *fiber.Ctx) error {
 	return entities.NewResponse(c).Success(
 		fiber.StatusOK,
 		result,
+	).Res()
+}
+
+func (h *teamHandler) InviteMember(c *fiber.Ctx) error {
+	team_id := strings.TrimSpace(c.Params("team_id"))
+	req := new(team.InviteMemberReq)
+
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(inviteMemberErr),
+			err.Error(),
+		).Res()
+	}
+
+	err := h.teamUsecase.InviteMember(team_id, req)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(inviteMemberErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		"invite member success",
 	).Res()
 }

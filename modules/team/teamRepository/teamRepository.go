@@ -14,6 +14,7 @@ type ITeamRepository interface {
 	GetTeamById(teamId string) (*team.GetTeamByIdRes, error)
 	JoinTeam(req *team.JoinTeamReq) (*team.JoinTeamRes, error)
 	GetTeamByUserId(userId string) ([]*team.GetTeamByUserIdRes, error)
+	InviteMember(team_id string, req *team.InviteMemberReq) error
 }
 
 type teamRepository struct {
@@ -222,4 +223,56 @@ func (r *teamRepository) GetTeamByUserId(userId string) ([]*team.GetTeamByUserId
 	}
 
 	return teams, nil
+}
+
+func (r *teamRepository) InviteMember(team_id string, req *team.InviteMemberReq) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	// loop insert team member with role = MEMBER (Check if Member is exist in User table first)
+	queryTeamMember := `
+	INSERT INTO "TeamMember" (
+		team_id,
+		user_id,
+		role
+		)
+	VALUES ($1, $2, $3);
+	`
+	for _, member := range req.Users {
+
+		queryCheckMmeber := `
+		SELECT
+			(CASE WHEN COUNT(*) = 1 THEN TRUE ELSE FALSE END)
+		FROM "TeamMember"
+		WHERE "user_id" = $1
+		AND "team_id" = $2;
+		`
+
+		var isMember bool
+		if err := r.db.Get(&isMember, queryCheckMmeber, member, team_id); err != nil {
+			return fmt.Errorf("check member in team failed: %v", err)
+		}
+
+		if isMember {
+			return fmt.Errorf("user already join team")
+		}
+
+		if _, err := r.db.ExecContext(ctx,
+			queryTeamMember,
+			team_id,
+			member,
+			"MEMBER",
+		); err != nil {
+			switch err.Error() {
+			case "ERROR: insert or update on table \"TeamMember\" violates foreign key constraint \"TeamMember_user_id_fkey\" (SQLSTATE 23503)":
+				return fmt.Errorf("some member does not exist")
+			case "ERROR: insert or update on table \"TeamMember\" violates foreign key constraint \"TeamMember_team_id_fkey\" (SQLSTATE 23503)":
+				return fmt.Errorf("team does not exist")
+			default:
+				return fmt.Errorf("invite member failed: %v", err)
+			}
+		}
+	}
+
+	return nil
 }

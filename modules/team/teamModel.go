@@ -12,3 +12,7 @@ type JoinTeamReq struct {
 	TeamCode string `json:"team_code" form:"team_code" validate:"required,min=4,max=32" db:"team_code"`
 	UserId   string `json:"user_id" form:"user_id" validate:"required" db:"user_id"`
 }
+
+type InviteMemberReq struct {
+	Users []*string `json:"users" form:"users" validate:"required" db:"users"`
+}

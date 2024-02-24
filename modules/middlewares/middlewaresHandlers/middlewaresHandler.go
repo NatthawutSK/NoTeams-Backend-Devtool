@@ -27,8 +27,12 @@ type IMiddlewaresHandler interface {
 	Logger() fiber.Handler
 	JwtAuth() fiber.Handler
 	ParamsCheck() fiber.Handler
+	// IsMemberTeam() fiber.Handler
+	// IsOwnerTeam() fiber.Handler
+	IsAllowInvite() fiber.Handler
+	IsAllowTask() fiber.Handler
+	IsAllowFile() fiber.Handler
 	AuthTeam() fiber.Handler
-	AuthorizeTeam() fiber.Handler
 }
 
 type middlewaresHandler struct {
@@ -120,36 +124,121 @@ func (h *middlewaresHandler) ParamsCheck() fiber.Handler {
 
 }
 
-// ตรวจสอบว่าเป็นสมาชิกของทีมหรือไม่ ต้องมาคู่กับ JwtAuth
+// // ตรวจสอบว่าเป็นสมาชิกของทีมหรือไม่ ต้องมาคู่กับ JwtAuth
+// func (h *middlewaresHandler) IsMemberTeam() fiber.Handler {
+// 	return func(c *fiber.Ctx) error {
+// 		userId := c.Locals("userId").(string)
+// 		teamId := strings.TrimSpace(c.Params("team_id"))
+// 		check := h.middlewaresUsecase.IsMemberInTeam(userId, teamId)
+// 		if !check {
+// 			return entities.NewResponse(c).Error(
+// 				fiber.ErrUnauthorized.Code,
+// 				string(authTeam),
+// 				"no permission to access team",
+// 			).Res()
+// 		}
+// 		return c.Next()
+// 	}
+// }
+
+// // ตรวจสอบว่าเป็นเจ้าของทีมหรือไม่ ต้องมาคู่กับ JwtAuth
+// func (h *middlewaresHandler) IsOwnerTeam() fiber.Handler {
+// 	return func(c *fiber.Ctx) error {
+// 		userId := c.Locals("userId").(string)
+// 		teamId := strings.TrimSpace(c.Params("team_id"))
+// 		check := h.middlewaresUsecase.IsOwnerInTeam(userId, teamId)
+// 		if !check {
+// 			return entities.NewResponse(c).Error(
+// 				fiber.ErrUnauthorized.Code,
+// 				string(authTeam),
+// 				"only owner have permission",
+// 			).Res()
+// 		}
+// 		// c.Locals("role", "OWNER")
+// 		return c.Next()
+// 	}
+// }
+
+// ตรวจสอบว่าเป็นสมาชิกหรือเจ้าของทีมหรือไม่ ต้องมาคู่กับ JwtAuth
 func (h *middlewaresHandler) AuthTeam() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userId := c.Locals("userId").(string)
 		teamId := strings.TrimSpace(c.Params("team_id"))
-		check := h.middlewaresUsecase.CheckMemberInTeam(userId, teamId)
-		if !check {
+		isMember, isOwner := h.middlewaresUsecase.AuthTeam(userId, teamId)
+		if !isMember {
 			return entities.NewResponse(c).Error(
 				fiber.ErrUnauthorized.Code,
 				string(authTeam),
 				"no permission to access team",
 			).Res()
 		}
+		c.Locals("role", "MEMBER")
+		if isOwner {
+			c.Locals("role", "OWNER")
+		}
 		return c.Next()
 	}
 }
 
-// ตรวจสอบว่าเป็นเจ้าของทีมหรือไม่ ต้องมาคู่กับ JwtAuth
-func (h *middlewaresHandler) AuthorizeTeam() fiber.Handler {
+// ตรวจสอบว่าสามารถเชิญคนเข้าทีมได้หรือไม่ ต้องมาคู่กับ JwtAuth และ AuthTeam
+func (h *middlewaresHandler) IsAllowInvite() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userId := c.Locals("userId").(string)
 		teamId := strings.TrimSpace(c.Params("team_id"))
-		check := h.middlewaresUsecase.CheckOwnerInTeam(userId, teamId)
+		role := c.Locals("role").(string)
+		if role == "OWNER" {
+			return c.Next()
+		}
+		check := h.middlewaresUsecase.IsAllowInviteMember(teamId)
 		if !check {
 			return entities.NewResponse(c).Error(
 				fiber.ErrUnauthorized.Code,
 				string(authTeam),
-				"only owner have permission",
+				"no permission to invite member",
 			).Res()
 		}
+
+		return c.Next()
+	}
+}
+
+// ตรวจสอบว่าสามารถสร้างหรือแก้ไข task ได้หรือไม่ ต้องมาคู่กับ JwtAuth และ AuthTeam
+func (h *middlewaresHandler) IsAllowTask() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		teamId := strings.TrimSpace(c.Params("team_id"))
+		role := c.Locals("role").(string)
+		if role == "OWNER" {
+			return c.Next()
+		}
+		check := h.middlewaresUsecase.IsAllowTask(teamId)
+		if !check {
+			return entities.NewResponse(c).Error(
+				fiber.ErrUnauthorized.Code,
+				string(authTeam),
+				"no permission to manage task",
+			).Res()
+		}
+
+		return c.Next()
+	}
+}
+
+// ตรวจสอบว่าสามารถอัพโหลดไฟล์ได้หรือไม่ ต้องมาคู่กับ JwtAuth และ AuthTeam
+func (h *middlewaresHandler) IsAllowFile() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		teamId := strings.TrimSpace(c.Params("team_id"))
+		role := c.Locals("role").(string)
+		if role == "OWNER" {
+			return c.Next()
+		}
+		check := h.middlewaresUsecase.IsAllowFile(teamId)
+		if !check {
+			return entities.NewResponse(c).Error(
+				fiber.ErrUnauthorized.Code,
+				string(authTeam),
+				"no permission to manage file",
+			).Res()
+		}
+
 		return c.Next()
 	}
 }
