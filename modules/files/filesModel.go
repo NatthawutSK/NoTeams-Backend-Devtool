@@ -7,5 +7,3 @@ type FileReq struct {
 	FileName    string                `json:"file_name" form:"file_name"`
 	ContentType string
 }
-
-type UploadFilesTeamReq struct{}

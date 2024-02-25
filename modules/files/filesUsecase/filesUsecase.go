@@ -1,13 +1,17 @@
 package filesUsecase
 
 import (
+	"mime/multipart"
+
 	"github.com/NatthawutSK/NoTeams-Backend/config"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/files"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/files/filesRepository"
+	"github.com/NatthawutSK/NoTeams-Backend/pkg/utils"
 )
 
 type IFilesUsecase interface {
 	GetFilesTeam(teamId string) (*files.GetFilesTeamRes, error)
+	UploadFilesTeam(userId string, teamId string, filesReq []*multipart.FileHeader) ([]*files.FileTeamByIdRes, error)
 	// UploadFiles(req []*multipart.FileHeader, isDownload bool, folder string) ([]*files.FileRes, error)
 	// UploadFilesTeam(req []*multipart.FileHeader, isDownload bool, folder string) ([]*files.FileRes, error)
 }
@@ -15,12 +19,14 @@ type IFilesUsecase interface {
 type filesUsecase struct {
 	cfg       config.IConfig
 	filesRepo filesRepository.IFilesRepository
+	upload    utils.IUpload
 }
 
 func FilesUsecase(cfg config.IConfig, filesRepo filesRepository.IFilesRepository) IFilesUsecase {
 	return &filesUsecase{
 		cfg:       cfg,
 		filesRepo: filesRepo,
+		upload:    utils.Upload(cfg),
 	}
 }
 
@@ -32,4 +38,21 @@ func (u *filesUsecase) GetFilesTeam(teamId string) (*files.GetFilesTeamRes, erro
 	}
 
 	return files, nil
+}
+
+func (u *filesUsecase) UploadFilesTeam(userId string, teamId string, filesReq []*multipart.FileHeader) ([]*files.FileTeamByIdRes, error) {
+
+	folder := teamId + "/files"
+
+	files, err := u.upload.UploadFiles(filesReq, true, folder)
+	if err != nil {
+		return nil, err
+	}
+
+	filesRes, err := u.filesRepo.UploadFilesTeam(userId, teamId, files)
+	if err != nil {
+		return nil, err
+	}
+
+	return filesRes, nil
 }

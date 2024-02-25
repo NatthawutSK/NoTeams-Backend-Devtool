@@ -1,8 +1,11 @@
 package filesRepository
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"time"
 
 	"github.com/NatthawutSK/NoTeams-Backend/modules/files"
 	"github.com/jmoiron/sqlx"
@@ -10,16 +13,18 @@ import (
 
 type IFilesRepository interface {
 	GetFilesTeam(teamId string) (*files.GetFilesTeamRes, error)
-	// UploadFiles() error
+	UploadFilesTeam(userId string, teamId string, req []*files.FileRes) ([]*files.FileTeamByIdRes, error)
 }
 
 type filesRepository struct {
-	db *sqlx.DB
+	db   *sqlx.DB
+	pCtx context.Context
 }
 
-func FilesRepository(db *sqlx.DB) IFilesRepository {
+func FilesRepository(db *sqlx.DB, pCtx context.Context) IFilesRepository {
 	return &filesRepository{
-		db: db,
+		db:   db,
+		pCtx: pCtx,
 	}
 }
 
@@ -52,19 +57,66 @@ func (r *filesRepository) GetFilesTeam(teamId string) (*files.GetFilesTeamRes, e
 
 	return &files, nil
 
-	// var filesTeam []*files.GetFilesTeamRes
-	// if err := r.db.Select(&filesTeam, query, teamId); err != nil {
-	// 	return nil, fmt.Errorf("error: %w", err)
-	// }
-	// return filesTeam, nil
 }
 
-// func (r *filesRepository) UploadFiles() error {
+func (r *filesRepository) UploadFilesTeam(userId string, teamId string, req []*files.FileRes) ([]*files.FileTeamByIdRes, error) {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
 
-// 	query := `
-// 	INSERT INTO File (file_name, file_url, team_id, user_id)
-// 	VALUES ($1, $2, $3, $4)
-// 	`
+	filesId := make([]string, 0)
 
-// 	return nil
-// }
+	queryFiles := `
+		INSERT INTO "File" (
+			team_id,
+			user_id,
+			file_name,
+			file_url
+			)
+		VALUES ($1, $2, $3, $4)
+		RETURNING "file_id";
+		`
+	for _, file := range req {
+		var id string
+		filename := filepath.Base(file.FileName)
+		if err := r.db.QueryRowContext(
+			ctx,
+			queryFiles,
+			teamId,
+			userId,
+			filename,
+			file.Url,
+		).Scan(&id); err != nil {
+			return nil, fmt.Errorf("insert oauth failed: %v", err)
+		}
+
+		filesId = append(filesId, id)
+	}
+
+	query := `
+		SELECT
+			"f"."file_name",
+			"f"."file_url",
+			"f"."created_at",
+			"u"."username"
+		FROM "File" f
+		JOIN "User" u ON f."user_id" = u."user_id"
+		WHERE f."file_id" = $1`
+
+	filesRes := make([]*files.FileTeamByIdRes, 0)
+
+	for _, fileId := range filesId {
+
+		file := new(files.FileTeamByIdRes)
+
+		if err := r.db.Get(file, query, fileId); err != nil {
+			return nil, fmt.Errorf("get files by file id failed: %v", err)
+		}
+
+		fmt.Println("in repo", file)
+
+		filesRes = append(filesRes, file)
+
+	}
+
+	return filesRes, nil
+}

@@ -18,7 +18,7 @@ const (
 
 type IFileHandler interface {
 	GetFilesTeam(c *fiber.Ctx) error
-	// UploadFilesTeam(c *fiber.Ctx) error
+	UploadFilesTeam(c *fiber.Ctx) error
 }
 
 type fileHandler struct {
@@ -33,50 +33,51 @@ func FileHandler(cfg config.IConfig, fileUsecase filesUsecase.IFilesUsecase) IFi
 	}
 }
 
-// func (h *fileHandler) UploadFilesTeam(c *fiber.Ctx) error {
+func (h *fileHandler) UploadFilesTeam(c *fiber.Ctx) error {
+	userId := c.Locals("userId").(string)
+	teamId := strings.TrimSpace(c.Params("team_id"))
 
-// 	form, err := c.MultipartForm()
-// 	if err != nil {
-// 		return entities.NewResponse(c).Error(
-// 			fiber.ErrBadRequest.Code,
-// 			string(uploadFilesErr),
-// 			err.Error(),
-// 		).Res()
-// 	}
+	form, err := c.MultipartForm()
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(uploadFilesErr),
+			err.Error(),
+		).Res()
+	}
 
-// 	filesReq := form.File["files"]
-// 	if err != nil {
-// 		return entities.NewResponse(c).Error(
-// 			fiber.ErrBadRequest.Code,
-// 			string(uploadFilesErr),
-// 			err.Error(),
-// 		).Res()
-// 	}
+	filesReq := form.File["files"]
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(uploadFilesErr),
+			err.Error(),
+		).Res()
+	}
 
-// 	if len(filesReq) == 0 {
-// 		return entities.NewResponse(c).Error(
-// 			fiber.ErrBadRequest.Code,
-// 			string(uploadFilesErr),
-// 			"no files found",
-// 		).Res()
-// 	}
+	if len(filesReq) == 0 {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(uploadFilesErr),
+			"no files found",
+		).Res()
+	}
 
-// 	// Upload the file to S3
-// 	url, err := h.fileUsecase.UploadFiles(filesReq, true, "etc")
-// 	if err != nil {
-// 		return entities.NewResponse(c).Error(
-// 			fiber.ErrBadRequest.Code,
-// 			string(uploadFilesErr),
-// 			err.Error(),
-// 		).Res()
-// 	}
+	res, err := h.fileUsecase.UploadFilesTeam(userId, teamId, filesReq)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(uploadFilesErr),
+			err.Error(),
+		).Res()
+	}
 
-// 	return entities.NewResponse(c).Success(
-// 		fiber.StatusOK,
-// 		url,
-// 	).Res()
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		res,
+	).Res()
 
-// }
+}
 
 func (h *fileHandler) GetFilesTeam(c *fiber.Ctx) error {
 	teamId := strings.TrimSpace(c.Params("team_id"))
