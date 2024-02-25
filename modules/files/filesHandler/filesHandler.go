@@ -5,6 +5,7 @@ import (
 
 	"github.com/NatthawutSK/NoTeams-Backend/config"
 	"github.com/NatthawutSK/NoTeams-Backend/entities"
+	"github.com/NatthawutSK/NoTeams-Backend/modules/files"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/files/filesUsecase"
 	"github.com/gofiber/fiber/v2"
 )
@@ -14,11 +15,13 @@ type FileHandlerErrCode string
 const (
 	uploadFilesErr  FileHandlerErrCode = "files-001"
 	getFilesTeamErr FileHandlerErrCode = "files-002"
+	deleteFilesErr  FileHandlerErrCode = "files-003"
 )
 
 type IFileHandler interface {
 	GetFilesTeam(c *fiber.Ctx) error
 	UploadFilesTeam(c *fiber.Ctx) error
+	DeleteFilesTeam(c *fiber.Ctx) error
 }
 
 type fileHandler struct {
@@ -93,5 +96,34 @@ func (h *fileHandler) GetFilesTeam(c *fiber.Ctx) error {
 	return entities.NewResponse(c).Success(
 		fiber.StatusOK,
 		filesTeam,
+	).Res()
+}
+
+func (h *fileHandler) DeleteFilesTeam(c *fiber.Ctx) error {
+
+	req := new(files.DeleteFilesTeamReq)
+
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(deleteFilesErr),
+			err.Error(),
+		).Res()
+	}
+
+	err := h.fileUsecase.DeleteFilesTeam(req)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(deleteFilesErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		"deleted file success",
 	).Res()
 }

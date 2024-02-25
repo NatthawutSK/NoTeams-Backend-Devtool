@@ -12,8 +12,7 @@ import (
 type IFilesUsecase interface {
 	GetFilesTeam(teamId string) (*files.GetFilesTeamRes, error)
 	UploadFilesTeam(userId string, teamId string, filesReq []*multipart.FileHeader) ([]*files.FileTeamByIdRes, error)
-	// UploadFiles(req []*multipart.FileHeader, isDownload bool, folder string) ([]*files.FileRes, error)
-	// UploadFilesTeam(req []*multipart.FileHeader, isDownload bool, folder string) ([]*files.FileRes, error)
+	DeleteFilesTeam(req *files.DeleteFilesTeamReq) error
 }
 
 type filesUsecase struct {
@@ -55,4 +54,14 @@ func (u *filesUsecase) UploadFilesTeam(userId string, teamId string, filesReq []
 	}
 
 	return filesRes, nil
+}
+
+func (u *filesUsecase) DeleteFilesTeam(req *files.DeleteFilesTeamReq) error {
+
+	err := u.filesRepo.DeleteFilesTeam(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

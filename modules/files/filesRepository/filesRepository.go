@@ -14,6 +14,7 @@ import (
 type IFilesRepository interface {
 	GetFilesTeam(teamId string) (*files.GetFilesTeamRes, error)
 	UploadFilesTeam(userId string, teamId string, req []*files.FileRes) ([]*files.FileTeamByIdRes, error)
+	DeleteFilesTeam(req *files.DeleteFilesTeamReq) error
 }
 
 type filesRepository struct {
@@ -121,4 +122,20 @@ func (r *filesRepository) UploadFilesTeam(userId string, teamId string, req []*f
 	}
 
 	return filesRes, nil
+}
+
+func (r *filesRepository) DeleteFilesTeam(req *files.DeleteFilesTeamReq) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	query := `
+		DELETE FROM "File"
+		WHERE "file_id" = $1;
+	`
+
+	if _, err := r.db.ExecContext(ctx, query, req.FileId); err != nil {
+		return fmt.Errorf("delete files team failed: %v", err)
+	}
+
+	return nil
 }
