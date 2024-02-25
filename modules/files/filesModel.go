@@ -8,7 +8,4 @@ type FileReq struct {
 	ContentType string
 }
 
-type FileRes struct {
-	FileName string `json:"filename"`
-	Url      string `json:"url"`
-}
+type UploadFilesTeamReq struct{}

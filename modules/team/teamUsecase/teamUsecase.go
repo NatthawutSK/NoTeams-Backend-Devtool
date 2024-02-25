@@ -5,9 +5,9 @@ import (
 	"mime/multipart"
 
 	"github.com/NatthawutSK/NoTeams-Backend/config"
-	"github.com/NatthawutSK/NoTeams-Backend/modules/files/filesUsecase"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/team"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/team/teamRepository"
+	"github.com/NatthawutSK/NoTeams-Backend/pkg/utils"
 )
 
 type ITeamUsecase interface {
@@ -26,16 +26,16 @@ type ITeamUsecase interface {
 }
 
 type teamUsecase struct {
-	teamRepo    teamRepository.ITeamRepository
-	cfg         config.IConfig
-	fileUsecase filesUsecase.IFilesUsecase
+	teamRepo teamRepository.ITeamRepository
+	cfg      config.IConfig
+	upload   utils.IUpload
 }
 
 func TeamUsecase(teamRepo teamRepository.ITeamRepository, cfg config.IConfig) ITeamUsecase {
 	return &teamUsecase{
-		teamRepo:    teamRepo,
-		cfg:         cfg,
-		fileUsecase: filesUsecase.FilesUsecase(cfg),
+		teamRepo: teamRepo,
+		cfg:      cfg,
+		upload:   utils.Upload(cfg),
 	}
 }
 
@@ -121,7 +121,7 @@ func (u *teamUsecase) UpdateProfileTeam(teamId string, req *team.UpdateTeamReq, 
 		}
 
 		//upload poster
-		url, err := u.fileUsecase.UploadFiles(posterFile, false, teamId)
+		url, err := u.upload.UploadFiles(posterFile, false, teamId)
 		if err != nil {
 			return err
 		}

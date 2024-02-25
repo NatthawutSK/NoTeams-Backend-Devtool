@@ -5,7 +5,6 @@ import (
 	"mime/multipart"
 
 	"github.com/NatthawutSK/NoTeams-Backend/config"
-	"github.com/NatthawutSK/NoTeams-Backend/modules/files/filesUsecase"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users/usersRepository"
 	"github.com/NatthawutSK/NoTeams-Backend/pkg/auth"
@@ -27,14 +26,14 @@ type IUserUsecase interface {
 type usersUsecase struct {
 	cfg             config.IConfig
 	usersRepository usersRepository.IUserRepository
-	fileUsecase     filesUsecase.IFilesUsecase
+	upload          utils.IUpload
 }
 
 func UserUsecase(usersRepo usersRepository.IUserRepository, cfg config.IConfig) IUserUsecase {
 	return &usersUsecase{
 		usersRepository: usersRepo,
 		cfg:             cfg,
-		fileUsecase:     filesUsecase.FilesUsecase(cfg),
+		upload:          utils.Upload(cfg),
 	}
 }
 
@@ -198,7 +197,7 @@ func (u *usersUsecase) UpdateUserProfile(userId string, req *users.UserUpdatePro
 		}
 
 		//upload avatar
-		url, err := u.fileUsecase.UploadFiles(avatarFile, false, userId)
+		url, err := u.upload.UploadFiles(avatarFile, false, userId)
 		if err != nil {
 			return nil, err
 		}
