@@ -79,6 +79,7 @@ CREATE TABLE "File" (
   "file_name" VARCHAR NOT NULL,
   "file_url" VARCHAR NOT NULL,
   "team_id" VARCHAR NOT NULL,
+  "user_id" VARCHAR NOT NULL,
   "created_at" TIMESTAMP NOT NULL DEFAULT now()
 );
 
@@ -104,6 +105,7 @@ ALTER TABLE "TeamMember" ADD FOREIGN KEY ("user_id") REFERENCES "User" ("user_id
 ALTER TABLE "TeamMember" ADD FOREIGN KEY ("team_id") REFERENCES "Team" ("team_id")  ON DELETE CASCADE;
 ALTER TABLE "Permission" ADD FOREIGN KEY ("team_id") REFERENCES "Team" ("team_id")  ON DELETE CASCADE;
 ALTER TABLE "File" ADD FOREIGN KEY ("team_id") REFERENCES "Team" ("team_id")  ON DELETE CASCADE;
+ALTER TABLE "File" ADD FOREIGN KEY ("user_id") REFERENCES "User" ("user_id")  ON DELETE CASCADE;
 ALTER TABLE "Task" ADD FOREIGN KEY ("team_id") REFERENCES "Team" ("team_id")  ON DELETE CASCADE;
 ALTER TABLE "Task" ADD FOREIGN KEY ("user_id") REFERENCES "User" ("user_id")  ON DELETE CASCADE;
 

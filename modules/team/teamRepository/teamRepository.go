@@ -11,7 +11,7 @@ import (
 )
 
 type ITeamRepository interface {
-	CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRes, error)
+	CreateTeam(userId string, req *team.CreateTeamReq) (*team.CreateTeamRes, error)
 	GetTeamById(teamId string) (*team.GetTeamByIdRes, error)
 	JoinTeam(req *team.JoinTeamReq) (*team.JoinTeamRes, error)
 	GetTeamByUserId(userId string) ([]*team.GetTeamByUserIdRes, error)
@@ -41,7 +41,7 @@ func TeamRepository(db *sqlx.DB, pCtx context.Context) ITeamRepository {
 // insert team
 // insert team member (Owner) with role = OWNER (Check if Owner is exist in User table first)
 // if have members then loop insert team member with role = MEMBER (Check if Member is exist in User table first)
-func (r *teamRepository) CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRes, error) {
+func (r *teamRepository) CreateTeam(userId string, req *team.CreateTeamReq) (*team.CreateTeamRes, error) {
 	res := new(team.CreateTeamRes)
 	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
 	defer cancel()
@@ -74,6 +74,13 @@ func (r *teamRepository) CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRe
 		}
 	}
 
+	//insert Permission for team (default allow_task = true, allow_file = true, allow_invite = true)
+	queryPermission := `INSERT INTO "Permission" (team_id) VALUES ($1);`
+	if _, err := tx.ExecContext(ctx, queryPermission, res.TeamId); err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("insert permission failed: %v", err)
+	}
+
 	queryTeamOwner := `
 	INSERT INTO "TeamMember" (
 		team_id,
@@ -85,7 +92,7 @@ func (r *teamRepository) CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRe
 	if _, err := tx.ExecContext(ctx,
 		queryTeamOwner,
 		res.TeamId,
-		req.OwnerId,
+		userId,
 		"OWNER",
 	); err != nil {
 		tx.Rollback()

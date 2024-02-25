@@ -31,11 +31,11 @@ VALUES
 (FALSE, TRUE, FALSE, 'T000003');
 
 -- Mock data for File table
-INSERT INTO "File" ("file_name", "file_url", "team_id")
+INSERT INTO "File" ("file_name", "file_url", "team_id", "user_id")
 VALUES
-('Document 1', '/files/doc1.pdf', 'T000001'),
-('Image 1', '/files/img1.jpg', 'T000002'),
-('Presentation 1', '/files/pres1.pptx', 'T000003');
+('File 1', 'https://www.example.com/file1', 'T000001', 'U000001'),
+('File 2', 'https://www.example.com/file2', 'T000002', 'U000002'),
+('File 3', 'https://www.example.com/file3', 'T000003', 'U000003');
 
 -- Mock data for Task table
 INSERT INTO "Task" ("task_name", "task_desc", "task_status", "task_deadline", "team_id", "user_id")

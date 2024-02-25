@@ -17,8 +17,7 @@ import (
 )
 
 type IFilesUsecase interface {
-	UploadFiles(req []*multipart.FileHeader, isDownload bool) ([]*files.FileRes, error)
-	// UploadFile(client *s3.Client, bucket, filename string, fileHeader *multipart.FileHeader) (string, error)
+	UploadFiles(req []*multipart.FileHeader, isDownload bool, folder string) ([]*files.FileRes, error)
 }
 
 type filesUsecase struct {
@@ -31,7 +30,7 @@ func FilesUsecase(cfg config.IConfig) IFilesUsecase {
 	}
 }
 
-func (u *filesUsecase) UploadFiles(filesReq []*multipart.FileHeader, isDownload bool) ([]*files.FileRes, error) {
+func (u *filesUsecase) UploadFiles(filesReq []*multipart.FileHeader, isDownload bool, folder string) ([]*files.FileRes, error) {
 	s3Client := s3Conn.S3Connect(u.cfg.S3())
 	contentType := "application/octet-stream"
 	filesUpload := make([]*files.FileReq, 0)
@@ -61,6 +60,9 @@ func (u *filesUsecase) UploadFiles(filesReq []*multipart.FileHeader, isDownload 
 		}
 
 		filename := utils.RandFileName(ext)
+		if folder != "" {
+			filename = fmt.Sprintf("%s/%s", folder, filename)
+		}
 		fileUp := &files.FileReq{
 			FileName:    filename,
 			Files:       file,

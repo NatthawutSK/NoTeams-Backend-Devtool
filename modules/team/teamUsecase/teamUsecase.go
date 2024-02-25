@@ -11,7 +11,7 @@ import (
 )
 
 type ITeamUsecase interface {
-	CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRes, error)
+	CreateTeam(userId string, req *team.CreateTeamReq) (*team.CreateTeamRes, error)
 	GetTeamById(teamId string) (*team.GetTeamByIdRes, error)
 	JoinTeam(req *team.JoinTeamReq) (*team.JoinTeamRes, error)
 	GetTeamByUserId(userId string) ([]*team.GetTeamByUserIdRes, error)
@@ -39,8 +39,8 @@ func TeamUsecase(teamRepo teamRepository.ITeamRepository, cfg config.IConfig) IT
 	}
 }
 
-func (u *teamUsecase) CreateTeam(req *team.CreateTeamReq) (*team.CreateTeamRes, error) {
-	result, err := u.teamRepo.CreateTeam(req)
+func (u *teamUsecase) CreateTeam(userId string, req *team.CreateTeamReq) (*team.CreateTeamRes, error) {
+	result, err := u.teamRepo.CreateTeam(userId, req)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (u *teamUsecase) UpdateProfileTeam(teamId string, req *team.UpdateTeamReq, 
 		}
 
 		//upload poster
-		url, err := u.fileUsecase.UploadFiles(posterFile, false)
+		url, err := u.fileUsecase.UploadFiles(posterFile, false, teamId)
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,7 @@
 package teamHandler
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/NatthawutSK/NoTeams-Backend/entities"
@@ -53,6 +54,9 @@ func TeamHandler(teamUsecase teamUsecase.ITeamUsecase) ITeamHandler {
 
 func (h *teamHandler) CreateTeam(c *fiber.Ctx) error {
 	req := new(team.CreateTeamReq)
+	userId := c.Locals("userId").(string)
+
+	fmt.Println("userId", userId)
 
 	//validate request
 	validate := entities.ContextWrapper(c)
@@ -64,7 +68,7 @@ func (h *teamHandler) CreateTeam(c *fiber.Ctx) error {
 		).Res()
 	}
 
-	result, err := h.teamUsecase.CreateTeam(req)
+	result, err := h.teamUsecase.CreateTeam(userId, req)
 	if err != nil {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,

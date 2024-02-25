@@ -198,7 +198,7 @@ func (u *usersUsecase) UpdateUserProfile(userId string, req *users.UserUpdatePro
 		}
 
 		//upload avatar
-		url, err := u.fileUsecase.UploadFiles(avatarFile, false)
+		url, err := u.fileUsecase.UploadFiles(avatarFile, false, userId)
 		if err != nil {
 			return nil, err
 		}
