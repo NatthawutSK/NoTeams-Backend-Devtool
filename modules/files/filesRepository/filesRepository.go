@@ -35,6 +35,7 @@ func (r *filesRepository) GetFilesTeam(teamId string) (*files.GetFilesTeamRes, e
 		COALESCE(array_to_json(array_agg("files")), '[]'::json)
 	FROM (
 		SELECT
+			"f"."file_id",
 			"f"."file_name",
 			"f"."file_url",
 			"f"."created_at",
@@ -94,6 +95,7 @@ func (r *filesRepository) UploadFilesTeam(userId string, teamId string, req []*f
 
 	query := `
 		SELECT
+			"f"."file_id",
 			"f"."file_name",
 			"f"."file_url",
 			"f"."created_at",

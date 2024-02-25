@@ -8,6 +8,7 @@ type FileRes struct {
 type GetFilesTeamRes []*GetFilesTeam
 
 type GetFilesTeam struct {
+	FileId    string `json:"file_id" db:"file_id"`
 	FileName  string `json:"file_name" db:"file_name"`
 	FileUrl   string `json:"file_url" db:"file_url"`
 	Username  string `json:"username" db:"username"`
@@ -15,6 +16,7 @@ type GetFilesTeam struct {
 }
 
 type FileTeamByIdRes struct {
+	FileId    string `json:"file_id" db:"file_id"`
 	FileName  string `json:"file_name" db:"file_name"`
 	FileUrl   string `json:"file_url" db:"file_url"`
 	Username  string `json:"username" db:"username"`
