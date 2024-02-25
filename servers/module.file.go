@@ -41,7 +41,7 @@ func (f *filesModule) Init() {
 	router := f.r.Group("/files")
 
 	router.Get("/team/:team_id", f.mid.JwtAuth(), f.mid.AuthTeam(), f.handler.GetFilesTeam)
-	router.Post("/upload/:team_id", f.mid.JwtAuth(), f.mid.AuthTeam(), f.handler.UploadFilesTeam)
+	router.Post("/upload/:team_id", f.mid.JwtAuth(), f.mid.AuthTeam(), f.mid.IsAllowFile(), f.handler.UploadFilesTeam)
 }
 
 func (f *filesModule) Usecase() filesUsecase.IFilesUsecase          { return f.usecase }
