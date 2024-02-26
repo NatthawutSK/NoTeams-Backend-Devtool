@@ -16,6 +16,7 @@ const (
 	updateTaskErr  taskHandlerErrorCode = "task-002"
 	deleteTaskErr  taskHandlerErrorCode = "task-003"
 	getTaskByIdErr taskHandlerErrorCode = "task-004"
+	calendarTask   taskHandlerErrorCode = "task-005"
 )
 
 type ITaskHandler interface {
@@ -23,6 +24,7 @@ type ITaskHandler interface {
 	UpdateTask(c *fiber.Ctx) error
 	DeleteTask(c *fiber.Ctx) error
 	GetTaskByTeamId(c *fiber.Ctx) error
+	CalendarTask(c *fiber.Ctx) error
 }
 
 type taskHandler struct {
@@ -129,6 +131,24 @@ func (h *taskHandler) GetTaskByTeamId(c *fiber.Ctx) error {
 		return entities.NewResponse(c).Error(
 			fiber.ErrBadRequest.Code,
 			string(getTaskByIdErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		res,
+	).Res()
+}
+
+func (h *taskHandler) CalendarTask(c *fiber.Ctx) error {
+	userId := strings.TrimSpace(c.Params("user_id"))
+
+	res, err := h.taskUsecase.CalendarTask(userId)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(calendarTask),
 			err.Error(),
 		).Res()
 	}

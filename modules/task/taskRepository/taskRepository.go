@@ -16,6 +16,7 @@ type ITaskRepository interface {
 	UpdateTask(teamId string, req *task.UpdateTaskReq) error
 	DeleteTask(req *task.DeleteTaskReq) error
 	GetTaskTeam(teamId string) (*task.GetTaskTeamRes, error)
+	CalendarTask(userId string) ([]*task.CalendarTaskRes, error)
 }
 
 type taskRepository struct {
@@ -83,8 +84,6 @@ func (r *taskRepository) AddTask(teamId string, req *task.AddTaskReq) (*task.Add
 		teamId,
 	).Scan(&taskRes.TaskId); err != nil {
 		switch err.Error() {
-		case "ERROR: insert or update on table \"Task\" violates foreign key constraint \"Task_user_id_fkey\" (SQLSTATE 23503)":
-			return nil, fmt.Errorf("user not found")
 		case "ERROR: insert or update on table \"Task\" violates foreign key constraint \"Task_team_id_fkey\" (SQLSTATE 23503)":
 			return nil, fmt.Errorf("team not found")
 		default:
@@ -229,4 +228,26 @@ func (r *taskRepository) GetTaskTeam(teamId string) (*task.GetTaskTeamRes, error
 
 	return &tasks, nil
 
+}
+
+func (r *taskRepository) CalendarTask(userId string) ([]*task.CalendarTaskRes, error) {
+	query := `
+	SELECT
+		"task_id",
+		"task_name",
+		"task_desc",
+		"task_status",
+		"task_deadline"
+	FROM "Task"
+	WHERE "user_id" = $1
+	AND "task_deadline" != ''
+	ORDER BY "task_deadline" ASC;
+	`
+
+	tasks := make([]*task.CalendarTaskRes, 0)
+	if err := r.db.Select(&tasks, query, userId); err != nil {
+		return nil, fmt.Errorf("get calendar task failed: %v", err)
+	}
+
+	return tasks, nil
 }
