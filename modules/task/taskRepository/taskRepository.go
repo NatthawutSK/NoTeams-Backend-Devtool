@@ -215,7 +215,8 @@ func (r *taskRepository) GetTaskTeam(teamId string) (*task.GetTaskTeamRes, error
 			"t"."task_desc",
 			"t"."task_status",
 			"t"."task_deadline",
-			"u"."username"
+			"u"."username",
+			"u"."user_id"
 		from "Task" t
 		FULL JOIN "User" u ON t."user_id" = u."user_id"
 		WHERE t."team_id" = $1

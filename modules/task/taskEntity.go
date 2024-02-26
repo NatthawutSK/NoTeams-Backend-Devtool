@@ -13,4 +13,5 @@ type GetTaskTeam struct {
 	TaskStatus   string `json:"task_status" db:"task_status"`
 	TaskDeadline string `json:"task_deadline" db:"task_deadline"`
 	Username     string `json:"username" db:"username"`
+	UserId       string `json:"user_id" db:"user_id"`
 }
