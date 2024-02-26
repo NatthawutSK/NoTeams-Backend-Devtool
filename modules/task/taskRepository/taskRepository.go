@@ -217,7 +217,7 @@ func (r *taskRepository) GetTaskTeam(teamId string) (*task.GetTaskTeamRes, error
 			"t"."task_deadline",
 			"u"."username"
 		from "Task" t
-		JOIN "User" u ON t."user_id" = u."user_id"
+		FULL JOIN "User" u ON t."user_id" = u."user_id"
 		WHERE t."team_id" = $1
 	) AS "tasks";
 	`
