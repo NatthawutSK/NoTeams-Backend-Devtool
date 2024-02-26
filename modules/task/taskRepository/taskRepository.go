@@ -13,6 +13,7 @@ import (
 type ITaskRepository interface {
 	AddTask(teamId string, req *task.AddTaskReq) (*task.AddTaskRes, error)
 	UpdateTask(teamId string, req *task.UpdateTaskReq) error
+	DeleteTask(req *task.DeleteTaskReq) error
 }
 
 type taskRepository struct {
@@ -169,6 +170,19 @@ func (r *taskRepository) UpdateTask(teamId string, req *task.UpdateTaskReq) erro
 
 	if _, err := r.db.ExecContext(ctx, query, values...); err != nil {
 		return fmt.Errorf("update task failed: %v", err)
+	}
+
+	return nil
+}
+
+func (r *taskRepository) DeleteTask(req *task.DeleteTaskReq) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	query := `DELETE FROM "Task" WHERE "task_id" = $1;`
+
+	if _, err := r.db.ExecContext(ctx, query, req.TaskId); err != nil {
+		return fmt.Errorf("delete task failed: %v", err)
 	}
 
 	return nil

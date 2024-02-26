@@ -14,11 +14,13 @@ type taskHandlerErrorCode string
 const (
 	createTaskErr taskHandlerErrorCode = "task-001"
 	updateTaskErr taskHandlerErrorCode = "task-002"
+	deleteTaskErr taskHandlerErrorCode = "task-003"
 )
 
 type ITaskHandler interface {
 	AddTask(c *fiber.Ctx) error
 	UpdateTask(c *fiber.Ctx) error
+	DeleteTask(c *fiber.Ctx) error
 }
 
 type taskHandler struct {
@@ -86,5 +88,33 @@ func (h *taskHandler) UpdateTask(c *fiber.Ctx) error {
 	return entities.NewResponse(c).Success(
 		fiber.StatusOK,
 		"update task success",
+	).Res()
+}
+
+func (h *taskHandler) DeleteTask(c *fiber.Ctx) error {
+	req := new(task.DeleteTaskReq)
+
+	//validate request
+	validate := entities.ContextWrapper(c)
+	if err := validate.BindRi(req); err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(deleteTaskErr),
+			err.Error(),
+		).Res()
+	}
+
+	err := h.taskUsecase.DeleteTask(req)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(deleteTaskErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		"delete task success",
 	).Res()
 }
