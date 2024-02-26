@@ -38,6 +38,7 @@ func (m *moduleFactory) TaskModule() ITaskModule {
 func (m *taskModule) Init() {
 	router := m.r.Group("/task")
 	router.Post("/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.mid.IsAllowTask(), m.handler.AddTask)
+	router.Put("/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.mid.IsAllowTask(), m.handler.UpdateTask)
 }
 
 func (p *taskModule) Repository() taskRepository.ITaskRepository { return p.repository }

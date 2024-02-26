@@ -11,6 +11,7 @@ import (
 
 type ITaskUsecase interface {
 	AddTask(teamId string, req *task.AddTaskReq) (*task.AddTaskRes, error)
+	UpdateTask(teamId string, req *task.UpdateTaskReq) error
 }
 
 type taskUsecase struct {
@@ -44,4 +45,13 @@ func (u *taskUsecase) AddTask(teamId string, req *task.AddTaskReq) (*task.AddTas
 	}
 
 	return res, nil
+}
+
+func (u *taskUsecase) UpdateTask(teamId string, req *task.UpdateTaskReq) error {
+
+	if err := u.taskRepo.UpdateTask(teamId, req); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -3,6 +3,7 @@ package taskRepository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/NatthawutSK/NoTeams-Backend/modules/task"
@@ -11,6 +12,7 @@ import (
 
 type ITaskRepository interface {
 	AddTask(teamId string, req *task.AddTaskReq) (*task.AddTaskRes, error)
+	UpdateTask(teamId string, req *task.UpdateTaskReq) error
 }
 
 type taskRepository struct {
@@ -88,4 +90,86 @@ func (r *taskRepository) AddTask(teamId string, req *task.AddTaskReq) (*task.Add
 	}
 
 	return taskRes, nil
+}
+
+func (r *taskRepository) UpdateTask(teamId string, req *task.UpdateTaskReq) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	queryWhereStack := make([]string, 0)
+	values := make([]any, 0)
+	lastIndex := 1
+
+	query := `
+	UPDATE "Task" SET`
+
+	if req.TaskName != "" {
+		values = append(values, req.TaskName)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"task_name" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+	if req.TaskDesc != "" {
+		values = append(values, req.TaskDesc)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"task_desc" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+	if req.TaskDeadline != "" {
+		values = append(values, req.TaskDeadline)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"task_deadline" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+	if req.UserId != "" {
+		//check user is in team or not
+		query := `
+		SELECT
+			(CASE WHEN COUNT(*) = 1 THEN TRUE ELSE FALSE END)
+		FROM "TeamMember"
+		WHERE "user_id" = $1
+		AND "team_id" = $2;`
+
+		var check bool
+		if err := r.db.Get(&check, query, req.UserId, teamId); err != nil {
+			return fmt.Errorf("check user in team failed: %v", err)
+		}
+
+		if !check {
+			return fmt.Errorf("user not in team")
+		}
+
+		values = append(values, req.UserId)
+
+		queryWhereStack = append(queryWhereStack, fmt.Sprintf(`
+		"user_id" = $%d?`, lastIndex))
+
+		lastIndex++
+	}
+
+	values = append(values, req.TaskId)
+
+	queryClose := fmt.Sprintf(`
+	WHERE "task_id" = $%d;`, lastIndex)
+
+	for i := range queryWhereStack {
+		if i != len(queryWhereStack)-1 {
+			query += strings.Replace(queryWhereStack[i], "?", ",", 1)
+		} else {
+			query += strings.Replace(queryWhereStack[i], "?", "", 1)
+		}
+	}
+	query += queryClose
+
+	if _, err := r.db.ExecContext(ctx, query, values...); err != nil {
+		return fmt.Errorf("update task failed: %v", err)
+	}
+
+	return nil
 }
