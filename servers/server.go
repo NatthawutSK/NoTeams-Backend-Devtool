@@ -56,6 +56,7 @@ func (s *server) Start() {
 	modules.UserModule().Init()
 	modules.FilesModule().Init()
 	modules.TeamModule().Init()
+	modules.TaskModule().Init()
 	//other module
 
 	// if route not found

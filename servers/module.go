@@ -13,6 +13,7 @@ type IModuleFactory interface {
 	UserModule() IUserModule
 	FilesModule() IFilesModule
 	TeamModule() ITeamModule
+	TaskModule() ITaskModule
 }
 
 type moduleFactory struct {

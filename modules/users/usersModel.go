@@ -4,7 +4,7 @@ type UserRegisterReq struct {
 	Email    string `db:"email" json:"email" form:"email" validate:"required,email"`
 	Password string `db:"password" json:"password" form:"password" validate:"required,min=8,max=32"`
 	Username string `db:"username" json:"username" form:"username" validate:"required,min=4,max=32"`
-	Dob      string `db:"dob" json:"dob" form:"dob" validate:"required"`
+	Dob      string `db:"dob" json:"dob" form:"dob" validate:"required,datetime=2006-01-02"`
 	Phone    string `db:"phone" json:"phone" form:"phone" validate:"required,min=10,max=10,number"`
 	Bio      string `db:"bio" json:"bio" form:"bio" validate:"min=0,max=255"`
 }
@@ -24,7 +24,7 @@ type UserRemoveCredentialReq struct {
 
 type UserUpdateProfileReq struct {
 	Username  string `db:"username" json:"username" form:"username" validate:"omitempty,min=4,max=32"`
-	Dob       string `db:"dob" json:"dob" form:"dob" validate:"omitempty"`
+	Dob       string `db:"dob" json:"dob" form:"dob" validate:"omitempty,datetime=2006-01-02"`
 	Phone     string `db:"phone" json:"phone" form:"phone" validate:"omitempty,min=10,max=10,number"`
 	Bio       string `db:"bio" json:"bio" form:"bio" validate:"omitempty,min=0,max=255"`
 	AvatarUrl string `db:"avatar_url" json:"avatar_url"`

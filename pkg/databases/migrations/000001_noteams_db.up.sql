@@ -90,11 +90,11 @@ CREATE TYPE task_status_enum AS ENUM ('TODO', 'DOING', 'DONE');
 CREATE TABLE "Task" (
   "task_id" uuid NOT NULL UNIQUE PRIMARY KEY DEFAULT uuid_generate_v4(),
   "task_name" VARCHAR NOT NULL,
-  "task_desc" TEXT NOT NULL,
+  "task_desc" TEXT,
   "task_status" task_status_enum  NOT NULL,
-  "task_deadline" VARCHAR NOT NULL,
+  "task_deadline" VARCHAR,
   "team_id" VARCHAR NOT NULL,
-  "user_id" VARCHAR NOT NULL,
+  "user_id" VARCHAR,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );
