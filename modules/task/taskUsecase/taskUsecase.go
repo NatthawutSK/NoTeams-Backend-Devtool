@@ -14,6 +14,7 @@ type ITaskUsecase interface {
 	UpdateTask(teamId string, req *task.UpdateTaskReq) error
 	DeleteTask(req *task.DeleteTaskReq) error
 	MoveTask(req *task.MoveTaskReq) error
+	GetTaskByTeamId(teamId string) (*task.GetTaskTeamRes, error)
 }
 
 type taskUsecase struct {
@@ -84,4 +85,13 @@ func (u *taskUsecase) MoveTask(req *task.MoveTaskReq) error {
 	}
 
 	return nil
+}
+
+func (u *taskUsecase) GetTaskByTeamId(teamId string) (*task.GetTaskTeamRes, error) {
+	res, err := u.taskRepo.GetTaskTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

@@ -4,6 +4,8 @@ type AddTaskRes struct {
 	TaskId string `json:"task_id" db:"task_id"`
 }
 
+type GetTaskTeamRes []*GetTaskTeam
+
 type GetTaskTeam struct {
 	TaskId       string `json:"task_id" db:"task_id"`
 	TaskName     string `json:"task_name" db:"task_name"`

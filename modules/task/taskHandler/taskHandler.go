@@ -12,10 +12,11 @@ import (
 type taskHandlerErrorCode string
 
 const (
-	createTaskErr taskHandlerErrorCode = "task-001"
-	updateTaskErr taskHandlerErrorCode = "task-002"
-	deleteTaskErr taskHandlerErrorCode = "task-003"
-	moveTaskErr   taskHandlerErrorCode = "task-004"
+	createTaskErr  taskHandlerErrorCode = "task-001"
+	updateTaskErr  taskHandlerErrorCode = "task-002"
+	deleteTaskErr  taskHandlerErrorCode = "task-003"
+	moveTaskErr    taskHandlerErrorCode = "task-004"
+	getTaskByIdErr taskHandlerErrorCode = "task-005"
 )
 
 type ITaskHandler interface {
@@ -23,6 +24,7 @@ type ITaskHandler interface {
 	UpdateTask(c *fiber.Ctx) error
 	DeleteTask(c *fiber.Ctx) error
 	MoveTask(c *fiber.Ctx) error
+	GetTaskByTeamId(c *fiber.Ctx) error
 }
 
 type taskHandler struct {
@@ -146,5 +148,23 @@ func (h *taskHandler) MoveTask(c *fiber.Ctx) error {
 	return entities.NewResponse(c).Success(
 		fiber.StatusOK,
 		"move task success",
+	).Res()
+}
+
+func (h *taskHandler) GetTaskByTeamId(c *fiber.Ctx) error {
+	teamId := strings.TrimSpace(c.Params("team_id"))
+
+	res, err := h.taskUsecase.GetTaskByTeamId(teamId)
+	if err != nil {
+		return entities.NewResponse(c).Error(
+			fiber.ErrBadRequest.Code,
+			string(getTaskByIdErr),
+			err.Error(),
+		).Res()
+	}
+
+	return entities.NewResponse(c).Success(
+		fiber.StatusOK,
+		res,
 	).Res()
 }

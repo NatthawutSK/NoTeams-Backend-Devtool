@@ -2,6 +2,7 @@ package taskRepository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ type ITaskRepository interface {
 	UpdateTask(teamId string, req *task.UpdateTaskReq) error
 	DeleteTask(req *task.DeleteTaskReq) error
 	MoveTask(req *task.MoveTaskReq) error
+	GetTaskTeam(teamId string) (*task.GetTaskTeamRes, error)
 }
 
 type taskRepository struct {
@@ -200,4 +202,36 @@ func (r *taskRepository) MoveTask(req *task.MoveTaskReq) error {
 	}
 
 	return nil
+}
+
+func (r *taskRepository) GetTaskTeam(teamId string) (*task.GetTaskTeamRes, error) {
+	query := `
+	SELECT
+		COALESCE(array_to_json(array_agg("tasks")), '[]'::json)
+	FROM (
+		SELECT
+			"t"."task_id",
+			"t"."task_name",
+			"t"."task_desc",
+			"t"."task_status",
+			"t"."task_deadline",
+			"u"."username"
+		from "Task" t
+		JOIN "User" u ON t."user_id" = u."user_id"
+		WHERE t."team_id" = $1
+	) AS "tasks";
+	`
+
+	tasksBytes := make([]byte, 0)
+	if err := r.db.Get(&tasksBytes, query, teamId); err != nil {
+		return nil, fmt.Errorf("get task team failed: %v", err)
+	}
+
+	tasks := make(task.GetTaskTeamRes, 0)
+	if err := json.Unmarshal(tasksBytes, &tasks); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal task team: %v", err)
+	}
+
+	return &tasks, nil
+
 }
