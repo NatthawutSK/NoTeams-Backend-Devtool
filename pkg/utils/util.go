@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/NatthawutSK/NoTeams-Backend/modules/users"
 	"golang.org/x/crypto/bcrypt"
@@ -14,4 +15,15 @@ func BcryptHashing(obj *users.UserRegisterReq) error {
 	}
 	obj.Password = string(hashPassword)
 	return nil
+}
+
+func CheckTaskStatus(status string) (string, error) {
+	status = strings.ToUpper(status)
+
+	switch status {
+	case "TODO", "DOING", "DONE":
+		return status, nil
+	default:
+		return "", fmt.Errorf("invalid task status")
+	}
 }
