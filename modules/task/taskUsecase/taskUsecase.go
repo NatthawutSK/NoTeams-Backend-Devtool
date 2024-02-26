@@ -13,6 +13,7 @@ type ITaskUsecase interface {
 	AddTask(teamId string, req *task.AddTaskReq) (*task.AddTaskRes, error)
 	UpdateTask(teamId string, req *task.UpdateTaskReq) error
 	DeleteTask(req *task.DeleteTaskReq) error
+	MoveTask(req *task.MoveTaskReq) error
 }
 
 type taskUsecase struct {
@@ -59,6 +60,26 @@ func (u *taskUsecase) UpdateTask(teamId string, req *task.UpdateTaskReq) error {
 
 func (u *taskUsecase) DeleteTask(req *task.DeleteTaskReq) error {
 	if err := u.taskRepo.DeleteTask(req); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *taskUsecase) MoveTask(req *task.MoveTaskReq) error {
+	req.TaskStatus = strings.ToUpper(req.TaskStatus)
+
+	status := map[string]bool{
+		"TODO":  true,
+		"DOING": true,
+		"DONE":  true,
+	}
+
+	if !status[req.TaskStatus] {
+		return fmt.Errorf("invalid task status")
+	}
+
+	if err := u.taskRepo.MoveTask(req); err != nil {
 		return err
 	}
 

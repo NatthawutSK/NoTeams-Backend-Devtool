@@ -40,6 +40,7 @@ func (m *taskModule) Init() {
 	router.Post("/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.mid.IsAllowTask(), m.handler.AddTask)
 	router.Put("/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.mid.IsAllowTask(), m.handler.UpdateTask)
 	router.Delete("/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.mid.IsAllowTask(), m.handler.DeleteTask)
+	router.Put("/move/:team_id", m.mid.JwtAuth(), m.mid.AuthTeam(), m.mid.IsAllowTask(), m.handler.MoveTask)
 }
 
 func (p *taskModule) Repository() taskRepository.ITaskRepository { return p.repository }

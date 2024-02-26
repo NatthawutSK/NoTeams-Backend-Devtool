@@ -14,6 +14,7 @@ type ITaskRepository interface {
 	AddTask(teamId string, req *task.AddTaskReq) (*task.AddTaskRes, error)
 	UpdateTask(teamId string, req *task.UpdateTaskReq) error
 	DeleteTask(req *task.DeleteTaskReq) error
+	MoveTask(req *task.MoveTaskReq) error
 }
 
 type taskRepository struct {
@@ -183,6 +184,19 @@ func (r *taskRepository) DeleteTask(req *task.DeleteTaskReq) error {
 
 	if _, err := r.db.ExecContext(ctx, query, req.TaskId); err != nil {
 		return fmt.Errorf("delete task failed: %v", err)
+	}
+
+	return nil
+}
+
+func (r *taskRepository) MoveTask(req *task.MoveTaskReq) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	query := `UPDATE "Task" SET "task_status" = $1 WHERE "task_id" = $2;`
+
+	if _, err := r.db.ExecContext(ctx, query, req.TaskStatus, req.TaskId); err != nil {
+		return fmt.Errorf("move task failed: %v", err)
 	}
 
 	return nil
