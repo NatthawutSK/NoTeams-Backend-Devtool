@@ -53,12 +53,12 @@ func MiddlewaresHandler(cfg config.IConfig, middlewaresUsecase middlewaresUsecas
 func (h *middlewaresHandler) Cors() fiber.Handler {
 	return cors.New(cors.Config{
 		Next:             cors.ConfigDefault.Next,
-		AllowOrigins:     "*",
+		AllowOriginsFunc: func(origin string) bool { return true },
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowHeaders:     "",
-		AllowCredentials: false,
+		AllowCredentials: true,
 		ExposeHeaders:    "",
-		MaxAge:           0,
+		MaxAge:           1800,
 	})
 }
 

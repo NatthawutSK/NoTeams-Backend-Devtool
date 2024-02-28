@@ -22,9 +22,13 @@ func MonitorHandler(cfg config.IConfig) IMonitorHandler {
 }
 
 func (h *monitorHandler) HealthCheck(c *fiber.Ctx) error {
+	// get coookies
+	cookies := c.Cookies("accessToken")
+
 	res := &monitor.Monitor{
 		Name:    h.cfg.App().Name(),
 		Version: h.cfg.App().Version(),
+		Token:   cookies,
 	}
 	return entities.NewResponse(c).Success(
 		fiber.StatusOK,
