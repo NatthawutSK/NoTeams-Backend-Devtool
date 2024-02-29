@@ -29,7 +29,7 @@ type IUsersHandler interface {
 	GetUserProfile(c *fiber.Ctx) error
 	SignOut(c *fiber.Ctx) error
 	RefreshPassport(c *fiber.Ctx) error
-	FindOneUserByEmailOrUsername(c *fiber.Ctx) error
+	FindUserByEmailOrUsername(c *fiber.Ctx) error
 	UpdateUserProfile(c *fiber.Ctx) error
 	GetTeamsByUserId(c *fiber.Ctx) error
 }
@@ -189,7 +189,7 @@ func (h *usersHandler) RefreshPassport(c *fiber.Ctx) error {
 	return entities.NewResponse(c).Success(fiber.StatusOK, passport).Res()
 }
 
-func (h *usersHandler) FindOneUserByEmailOrUsername(c *fiber.Ctx) error {
+func (h *usersHandler) FindUserByEmailOrUsername(c *fiber.Ctx) error {
 	email := c.Query("email")
 	username := c.Query("username")
 

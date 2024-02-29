@@ -12,7 +12,7 @@ import (
 
 type IUserRepository interface {
 	GetProfile(userId string) (*users.User, error)
-	FindOneUserByEmailOrUsername(email, username string) (*users.UserCredentialCheck, error)
+	FindOneUserByEmail(email string) (*users.UserCredentialCheck, error)
 	InsertUser(req *users.UserRegisterReq) (IUserRepository, error)
 	Result() (*users.User, error)
 	InsertOauth(req *users.UserPassport) error
@@ -21,6 +21,7 @@ type IUserRepository interface {
 	FindOneOauth(refreshToken string) (*users.Oauth, error)
 	UpdateUserProfile(userId string, req *users.UserUpdateProfileReq) error
 	GetTeamsByUserId(userId string) ([]*users.TeamsByUserIdRes, error)
+	FindUserByEmailOrUsername(email, username string) ([]*users.FindMember, error)
 }
 
 type usersRepository struct {
@@ -98,7 +99,7 @@ func (r *usersRepository) Result() (*users.User, error) {
 	return user, nil
 }
 
-func (r *usersRepository) FindOneUserByEmailOrUsername(email, username string) (*users.UserCredentialCheck, error) {
+func (r *usersRepository) FindOneUserByEmail(email string) (*users.UserCredentialCheck, error) {
 	query := `
 	SELECT
 		"user_id",
@@ -110,9 +111,9 @@ func (r *usersRepository) FindOneUserByEmailOrUsername(email, username string) (
 		"bio",
 		"avatar"
 	FROM "User"
-	WHERE "email" = $1 OR "username" = $2;`
+	WHERE "email" = $1;`
 	user := new(users.UserCredentialCheck)
-	if err := r.db.Get(user, query, email, username); err != nil {
+	if err := r.db.Get(user, query, email); err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
 	return user, nil
@@ -296,4 +297,38 @@ func (r *usersRepository) GetTeamsByUserId(userId string) ([]*users.TeamsByUserI
 	}
 
 	return teams, nil
+}
+
+func (r *usersRepository) FindUserByEmailOrUsername(email, username string) ([]*users.FindMember, error) {
+	search := ""
+	value := ""
+
+	if email == "" && username == "" {
+		return nil, fmt.Errorf("email or username is required")
+	}
+
+	if email != "" {
+		search = "email"
+		value = "%" + email + "%"
+	} else {
+		search = "username"
+		value = "%" + username + "%"
+	}
+
+	query := fmt.Sprintf(`
+	SELECT
+		"user_id",
+		"username",
+		"avatar",
+		"email"
+	FROM "User"
+	WHERE "%s" LIKE $1
+	`, search)
+
+	members := make([]*users.FindMember, 0)
+	if err := r.db.Select(&members, query, value); err != nil {
+		return nil, fmt.Errorf("find user by email or username failed: %v", err)
+	}
+
+	return members, nil
 }
