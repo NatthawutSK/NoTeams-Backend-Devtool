@@ -50,13 +50,25 @@ func MiddlewaresHandler(cfg config.IConfig, middlewaresUsecase middlewaresUsecas
 	}
 }
 
+// func (h *middlewaresHandler) Cors() fiber.Handler {
+// 	return cors.New(cors.Config{
+// 		Next:             cors.ConfigDefault.Next,
+// 		AllowHeaders:     "Origin, Content-Type, Accept, Content-Length, Accept-Language, Accept-Encoding, Connection, Access-Control-Allow-Origin, Access-Control-Allow-Methods",
+// 		AllowOrigins:     "*",
+// 		AllowCredentials: true,
+// 		AllowMethods:     "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
+// 	})
+// }
+
 func (h *middlewaresHandler) Cors() fiber.Handler {
 	return cors.New(cors.Config{
 		Next:             cors.ConfigDefault.Next,
-		AllowHeaders:     "Origin, Content-Type, Accept, Content-Length, Accept-Language, Accept-Encoding, Connection, Access-Control-Allow-Origin, Access-Control-Allow-Methods",
 		AllowOrigins:     "*",
-		AllowCredentials: true,
-		AllowMethods:     "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowHeaders:     "",
+		AllowCredentials: false,
+		ExposeHeaders:    "",
+		MaxAge:           0,
 	})
 }
 
