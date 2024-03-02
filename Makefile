@@ -1,4 +1,4 @@
-DB_URL_PROD=
+DB_URL_PROD=postgres://postgres:njDcP7FR2YEy3yFk@34.143.168.48:5432/noteam_devtool_db?sslmode=disable
 DB_URL_DEV=postgres://ri:123456@localhost:4444/noteam_devtool_db?sslmode=disable
 PATH_MIGRATE ?= pkg/databases/migrations
 TAG ?= v1
