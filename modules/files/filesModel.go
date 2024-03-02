@@ -3,9 +3,12 @@ package files
 import "mime/multipart"
 
 type FileReq struct {
-	Files       *multipart.FileHeader `form:"files"`
-	FileName    string                `json:"file_name" form:"file_name"`
-	ContentType string
+	File           *multipart.FileHeader `form:"files"`
+	Destination    string
+	Extension      string
+	OriginFilename string
+	FileName       string
+	ContentType    string
 }
 
 type DeleteFilesTeamReq struct {

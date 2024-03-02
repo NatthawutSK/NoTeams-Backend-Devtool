@@ -56,6 +56,7 @@ func LoadConfig(path string) IConfig {
 				}
 				return b
 			}(),
+			gcpbucket: envMap["APP_GCP_BUCKET"],
 		},
 		db: &db{
 			host: envMap["DB_HOST"],
@@ -96,13 +97,6 @@ func LoadConfig(path string) IConfig {
 				return t
 			}(),
 		},
-		s3: &s3{
-			s3AccessKey: envMap["S3_ACCESS_KEY"],
-			s3SecretKey: envMap["S3_SECRET_KEY"],
-			s3Bucket:    envMap["S3_BUCKET_NAME"],
-			s3Region:    envMap["S3_REGION"],
-			s3Session:   envMap["S3_SESSION_TOKEN"],
-		},
 	}
 }
 
@@ -110,14 +104,12 @@ type IConfig interface {
 	App() IAppConfig
 	Db() IDbConfig
 	Jwt() IJwtConfig
-	S3() IS3Config
 }
 
 type config struct {
 	app *app
 	db  *db
 	jwt *jwt
-	s3  *s3
 }
 
 type IAppConfig interface {
@@ -130,6 +122,7 @@ type IAppConfig interface {
 	FileLimit() int
 	Host() string
 	Port() int
+	GCPBucket() string
 }
 
 type app struct {
@@ -141,6 +134,7 @@ type app struct {
 	writeTimeout    time.Duration
 	bodyLimit       int //bytes
 	fileUploadLimit int //bytes
+	gcpbucket       string
 }
 
 func (c *config) App() IAppConfig {
@@ -162,6 +156,7 @@ func (a *app) BodyLimit() int              { return a.bodyLimit }
 func (a *app) FileUploadLimit() int        { return a.fileUploadLimit }
 func (a *app) Host() string                { return a.host }
 func (a *app) Port() int                   { return a.port }
+func (a *app) GCPBucket() string           { return a.gcpbucket }
 
 type IDbConfig interface {
 	Url() string
@@ -217,29 +212,3 @@ func (j *jwt) AccessExpiresAt() int       { return j.accessExpiresAt }
 func (j *jwt) RefreshExpiresAt() int      { return j.refreshExpiresAt }
 func (j *jwt) SetJwtAccessExpires(t int)  { j.accessExpiresAt = t }
 func (j *jwt) SetJwtRefreshExpires(t int) { j.refreshExpiresAt = t }
-
-type s3 struct {
-	s3AccessKey string
-	s3SecretKey string
-	s3Bucket    string
-	s3Region    string
-	s3Session   string
-}
-
-type IS3Config interface {
-	S3AccessKey() string
-	S3SecretKey() string
-	S3Bucket() string
-	S3Region() string
-	S3Session() string
-}
-
-func (s *s3) S3AccessKey() string { return s.s3AccessKey }
-func (s *s3) S3SecretKey() string { return s.s3SecretKey }
-func (s *s3) S3Bucket() string    { return s.s3Bucket }
-func (s *s3) S3Region() string    { return s.s3Region }
-func (s *s3) S3Session() string   { return s.s3Session }
-
-func (c *config) S3() IS3Config {
-	return c.s3
-}

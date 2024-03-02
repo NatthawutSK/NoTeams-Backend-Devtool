@@ -1,17 +1,18 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"math"
 	"mime/multipart"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/NatthawutSK/NoTeams-Backend/modules/files"
-	"github.com/NatthawutSK/NoTeams-Backend/pkg/s3Conn"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/NatthawutSK/NoTeams-Backend/config"
 )
@@ -30,11 +31,89 @@ func Upload(cfg config.IConfig) IUpload {
 	}
 }
 
+type filesPub struct {
+	bucket      string
+	destination string
+	file        *files.FileRes
+}
+
+func (f *filesPub) makePublic(ctx context.Context, client *storage.Client) error {
+	acl := client.Bucket(f.bucket).Object(f.destination).ACL()
+	if err := acl.Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
+		return fmt.Errorf("ACLHandle.Set: %w", err)
+	}
+	fmt.Printf("Blob %v is now publicly accessible.\n", f.destination)
+	return nil
+}
+
+func (u *upload) uploadWorkers(ctx context.Context, client *storage.Client, jobs <-chan *files.FileReq, result chan<- *files.FileRes, errs chan<- error) {
+	//jobs <-chan คือการรับค่าจาก channel แบบ receive only
+	//result chan<- คือการส่งค่าไปที่ channel แบบ send only
+	//errs chan<- คือการส่งค่าไปที่ channel แบบ send only
+
+	for job := range jobs {
+		container, err := job.File.Open()
+		if err != nil {
+			errs <- fmt.Errorf("open file failed: %v", err)
+			return
+		}
+		b, err := io.ReadAll(container)
+		if err != nil {
+			errs <- fmt.Errorf("read file failed: %v", err)
+			return
+		}
+		buf := bytes.NewBuffer(b)
+
+		// Upload an object with storage.Writer.
+		wc := client.Bucket(u.cfg.App().GCPBucket()).Object(job.Destination).NewWriter(ctx)
+		wc.ObjectAttrs.ContentType = job.ContentType
+
+		if _, err = io.Copy(wc, buf); err != nil {
+			errs <- fmt.Errorf("io.Copy: %w", err)
+			return
+		}
+		// Data can continue to be added to the file until the writer is closed.
+		if err := wc.Close(); err != nil {
+			errs <- fmt.Errorf("Writer.Close: %w", err)
+			return
+		}
+		fmt.Printf("%v uploaded to %v.\n", job.FileName, job.Destination)
+
+		newFile := &filesPub{
+			file: &files.FileRes{
+				FileName: job.OriginFilename,
+				Url:      fmt.Sprintf("https://storage.googleapis.com/%s/%s", u.cfg.App().GCPBucket(), job.Destination),
+			},
+			bucket:      u.cfg.App().GCPBucket(),
+			destination: job.Destination,
+		}
+
+		if err := newFile.makePublic(ctx, client); err != nil {
+			errs <- fmt.Errorf("make file public failed: %v", err)
+			return
+		}
+
+		errs <- nil
+		result <- newFile.file
+	}
+
+}
+
 func (u *upload) UploadFiles(filesReq []*multipart.FileHeader, isDownload bool, folder string) ([]*files.FileRes, error) {
-	s3Client := s3Conn.S3Connect(u.cfg.S3())
-	contentType := "application/octet-stream"
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	defer cancel()
+
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("storage.NewClient: %w", err)
+	}
+	defer client.Close()
+
+	fmt.Println("uploading files to GCP bucket : ", u.cfg.App().GCPBucket())
+
 	filesUpload := make([]*files.FileReq, 0)
 	res := make([]*files.FileRes, 0)
+	contentType := "application/octet-stream"
 
 	// files ext validation
 	extMap := map[string]string{
@@ -45,10 +124,10 @@ func (u *upload) UploadFiles(filesReq []*multipart.FileHeader, isDownload bool, 
 	}
 
 	for _, file := range filesReq {
-		// check file extension
 		if !isDownload {
 			contentType = file.Header.Get("Content-Type")
 		}
+		// check file extension
 		ext := strings.TrimPrefix(filepath.Ext(file.Filename), ".")
 		if extMap[ext] != ext || extMap[ext] == "" {
 			return nil, fmt.Errorf("invalid filesReq extension")
@@ -60,13 +139,16 @@ func (u *upload) UploadFiles(filesReq []*multipart.FileHeader, isDownload bool, 
 		}
 
 		filename := RandFileName(ext)
-		if folder != "" {
-			filename = fmt.Sprintf("%s/%s", folder, filename)
-		}
+		// if folder != "" {
+		// 	filename = fmt.Sprintf("%s/%s", folder, filename)
+		// }
 		fileUp := &files.FileReq{
-			FileName:    filename,
-			Files:       file,
-			ContentType: contentType,
+			File:           file,
+			FileName:       filename,
+			OriginFilename: file.Filename,
+			Destination:    fmt.Sprintf("%s/%s", folder, filename),
+			Extension:      ext,
+			ContentType:    contentType,
 		}
 
 		filesUpload = append(filesUpload, fileUp)
@@ -83,7 +165,7 @@ func (u *upload) UploadFiles(filesReq []*multipart.FileHeader, isDownload bool, 
 
 	numWorkers := 5
 	for i := 0; i < numWorkers; i++ {
-		go u.uploadWorkers(s3Client, jobsCh, resultsCh, errorsCh)
+		go u.uploadWorkers(ctx, client, jobsCh, resultsCh, errorsCh)
 	}
 
 	for a := 0; a < len(filesUpload); a++ {
@@ -96,39 +178,5 @@ func (u *upload) UploadFiles(filesReq []*multipart.FileHeader, isDownload bool, 
 	}
 
 	return res, nil
-
-}
-
-func (u *upload) uploadWorkers(s3Client *s3.Client, jobs <-chan *files.FileReq, result chan<- *files.FileRes, errs chan<- error) {
-
-	for job := range jobs {
-		f, err := job.Files.Open()
-		if err != nil {
-			errs <- fmt.Errorf("open file failed: %v", err)
-			return
-		}
-		defer f.Close()
-
-		input := &s3.PutObjectInput{
-			Bucket:      aws.String(u.cfg.S3().S3Bucket()),
-			Key:         aws.String(job.FileName),
-			Body:        f,
-			ContentType: aws.String(job.ContentType),
-		}
-
-		_, err = s3Client.PutObject(context.TODO(), input)
-		if err != nil {
-			errs <- fmt.Errorf("put object failed: %v", err)
-			return
-		}
-
-		newFile := &files.FileRes{
-			FileName: job.FileName,
-			Url:      fmt.Sprintf("https://%s.s3.amazonaws.com/%s", u.cfg.S3().S3Bucket(), job.FileName),
-		}
-
-		errs <- nil
-		result <- newFile
-	}
 
 }

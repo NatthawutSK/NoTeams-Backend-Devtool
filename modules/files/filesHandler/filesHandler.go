@@ -50,13 +50,6 @@ func (h *fileHandler) UploadFilesTeam(c *fiber.Ctx) error {
 	}
 
 	filesReq := form.File["files"]
-	if err != nil {
-		return entities.NewResponse(c).Error(
-			fiber.ErrBadRequest.Code,
-			string(uploadFilesErr),
-			err.Error(),
-		).Res()
-	}
 
 	if len(filesReq) == 0 {
 		return entities.NewResponse(c).Error(
