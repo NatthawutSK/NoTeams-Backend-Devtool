@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   backend:
-    container_name: noteams-backend
+    container_name: noteams-backend-devtool
     build:
       context: .
       dockerfile: Dockerfile
