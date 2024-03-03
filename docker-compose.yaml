@@ -8,5 +8,5 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./gcloud:/root/.config/gcloud
+    # volumes:
+    #   - ./gcloud:/root/.config/gcloud
