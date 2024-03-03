@@ -1,12 +1,10 @@
 version: "3.8"
 services:
   backend:
-    container_name: backend_server
-    image: fixfireza/noteams-backend:1.0
+    container_name: backend-server
+    image: fixfireza/noteams-backend-devtool:2.0
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    # volumes:
-    #   - ./gcloud:/root/.config/gcloud
