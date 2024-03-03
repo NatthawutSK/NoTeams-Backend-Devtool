@@ -23,6 +23,8 @@ type ITeamRepository interface {
 	UpdateTeam(teamId string, req *team.UpdateTeamReq) error
 	UpdatePermission(teamId string, req *team.UpdatePermissionReq) error
 	UpdateCodeTeam(teamId string, req *team.UpdateCodeTeamReq) error
+	DeleteTeam(teamId string) error
+	ExitTeam(userId, teamId string) error
 }
 
 type teamRepository struct {
@@ -475,6 +477,40 @@ func (r *teamRepository) UpdateCodeTeam(teamId string, req *team.UpdateCodeTeamR
 		default:
 			return fmt.Errorf("update code team failed: %v", err)
 		}
+	}
+
+	return nil
+}
+
+func (r *teamRepository) DeleteTeam(teamId string) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	query := `
+	DELETE FROM "Team"
+	WHERE "team_id" = $1;
+	`
+	if _, err := r.db.ExecContext(ctx, query, teamId); err != nil {
+		return fmt.Errorf("delete team failed: %v", err)
+	}
+
+	return nil
+}
+
+func (r *teamRepository) ExitTeam(userId, teamId string) error {
+	ctx, cancel := context.WithTimeout(r.pCtx, 20*time.Second)
+	defer cancel()
+
+	fmt.Println("userId", userId)
+	fmt.Println("teamId", teamId)
+
+	query := `
+	DELETE FROM "TeamMember"
+	WHERE "user_id" = $1
+	AND "team_id" = $2;
+	`
+	if _, err := r.db.ExecContext(ctx, query, userId, teamId); err != nil {
+		return fmt.Errorf("exit team failed: %v", err)
 	}
 
 	return nil
