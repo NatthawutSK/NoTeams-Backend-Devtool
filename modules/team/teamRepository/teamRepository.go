@@ -142,15 +142,21 @@ func (r *teamRepository) CreateTeam(userId string, req *team.CreateTeamReq) (*te
 }
 
 func (r *teamRepository) GetTeamById(teamId string) (*team.GetTeamByIdRes, error) {
+
 	query := `
 	SELECT
-		"team_id",
-		"team_name",
-		"team_poster"
-	FROM "Team"
-	WHERE "team_id" = $1;
+		"t"."team_id",
+		"t"."team_name",
+		"t"."team_poster",
+		"p"."allow_task",
+		"p"."allow_file",
+		"p"."allow_invite"
+	FROM "Team" "t"
+	INNER JOIN "Permission" "p"
+	ON "t"."team_id" = "p"."team_id"
+	WHERE "t"."team_id" = $1;
 	`
-	fmt.Println("teamId", teamId)
+	// fmt.Println("teamId", teamId)
 	team := new(team.GetTeamByIdRes)
 	if err := r.db.Get(team, query, teamId); err != nil {
 		return nil, fmt.Errorf("get team by id failed: %v", err)

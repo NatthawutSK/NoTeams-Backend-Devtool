@@ -7,10 +7,13 @@ type CreateTeamRes struct {
 }
 
 type GetTeamByIdRes struct {
-	TeamId     string `json:"team_id" db:"team_id"`
-	TeamName   string `json:"team_name" db:"team_name"`
-	TeamPoster string `json:"team_poster" db:"team_poster"`
-	UserRole   string `json:"user_role" db:"user_role"`
+	TeamId      string `json:"team_id" db:"team_id"`
+	TeamName    string `json:"team_name" db:"team_name"`
+	TeamPoster  string `json:"team_poster" db:"team_poster"`
+	UserRole    string `json:"user_role" db:"user_role"`
+	AllowTask   bool   `json:"allow_task" db:"allow_task"`
+	AllowFile   bool   `json:"allow_file" db:"allow_file"`
+	AllowInvite bool   `json:"allow_invite" db:"allow_invite"`
 }
 
 type JoinTeamRes struct {
