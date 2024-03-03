@@ -29,7 +29,7 @@ pipeline {
                         withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                             sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                         }
-                        sh 'docker push fixfireza/noteam-backend-devtool:1.0'
+                        sh 'docker push fixfireza/noteam-backend:1.0'
                     }
                 }
             }
