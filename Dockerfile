@@ -16,4 +16,3 @@ COPY .env.prod /bin
 EXPOSE 3000
 
 ENTRYPOINT [ "/bin/myapp", "/bin/.env.prod" ]
-# docker run -d -p 3000:3000 --name noteams-backend -v ~/.config/gcloud:/root/.config/gcloud noteam-backend-1-backend
