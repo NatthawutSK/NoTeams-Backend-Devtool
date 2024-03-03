@@ -9,4 +9,4 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ~/.config/gcloud:/root/.config/gcloud
+      - /home/g64070148/.config/gcloud:/root/.config/gcloud
