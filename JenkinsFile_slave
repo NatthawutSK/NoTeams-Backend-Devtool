@@ -32,7 +32,7 @@ pipeline {
                 echo 'we are running the image that i just pulled bro ;-;'
                     dir('Noteams') {
                         echo "Current path is ${pwd()}"
-                        sh "docker run --name backend-server -d -p 3000:3000 -v ~/.config/gcloud:/root/.config/gcloud fixfireza/noteams-backend"
+                        sh "docker run --name backend-server -d -p 3000:3000 -v /var/lib/jenkins/workspace/noteams/gcloud:/root/.config/gcloud fixfireza/noteams-backend"
                     }
                 }
             }
