@@ -18,26 +18,27 @@ pipeline {
                     echo 'we are building bro ;-;'
                     // dir('Noteams') {
                         echo "Current path is ${pwd()}"
-                        sh "docker compose build"
+                        sh "ls -a"
+                        // sh "docker compose build"
                     // }
                 }
             }
 
-            stage('Pushing Stage'){
-                steps {
-                    echo 'we are pushing bro ;-;'
-                    // dir('Noteams') {
-                        withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                            sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                        }
-                        sh 'docker push fixfireza/noteams-backend:1.0'
-                    // }
-                }
-            }
-            stage('Trigger to slave job'){
-                steps {
-                    build job: 'SlaveJob'
-                }
-            }
+            // stage('Pushing Stage'){
+            //     steps {
+            //         echo 'we are pushing bro ;-;'
+            //         // dir('Noteams') {
+            //             withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+            //                 sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+            //             }
+            //             sh 'docker push fixfireza/noteams-backend:1.0'
+            //         // }
+            //     }
+            // }
+            // stage('Trigger to slave job'){
+            //     steps {
+            //         build job: 'SlaveJob'
+            //     }
+            // }
         }
 }
