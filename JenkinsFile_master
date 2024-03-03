@@ -36,8 +36,6 @@ pipeline {
             }
             stage('Trigger to slave job'){
                 steps {
-                    // echo 'current path is ${pwd()}'
-                    // sh 'cd ~/.config'
                     build job: 'SlaveJob'
                 }
             }
