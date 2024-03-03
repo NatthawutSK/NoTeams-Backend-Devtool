@@ -18,7 +18,7 @@ pipeline {
                     echo 'we are building bro ;-;'
                     // dir('Noteams') {
                         echo "Current path is ${pwd()}"
-                        sh "docker compose up --build"
+                        sh "docker compose build"
                     // }
                 }
             }
