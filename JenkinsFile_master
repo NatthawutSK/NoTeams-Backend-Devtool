@@ -17,8 +17,6 @@ pipeline {
                 steps {
                     echo 'we are building bro ;-;'
                     dir('Noteams') {
-                        // echo "Current path is ${pwd()}"
-                        // sh 'cd /home/g64070148/.config/gcloud'
                         echo "Current path is ${pwd()}"
                         sh "docker compose build"
                     }
