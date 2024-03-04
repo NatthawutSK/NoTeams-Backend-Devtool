@@ -142,7 +142,7 @@ func (u *teamUsecase) UpdateProfileTeam(teamId string, req *team.UpdateTeamReq, 
 func (u *teamUsecase) UpdatePermission(teamId string, req *team.UpdatePermissionReq) error {
 	// check permissionType must be task | file | invite use map
 	permissionTypeMap := map[string]string{
-		"task":   "\"allow_task\"",
+		"task":   "allow_task",
 		"file":   "allow_file",
 		"invite": "allow_invite",
 	}

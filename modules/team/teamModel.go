@@ -24,7 +24,7 @@ type UpdateTeamReq struct {
 
 type UpdatePermissionReq struct {
 	PermissionType string `json:"permission_type" form:"permission_type" validate:"required"`
-	Value          bool   `json:"value" form:"value" validate:"required"`
+	Value          bool   `json:"value" form:"value" validate:"boolean"`
 }
 
 type UpdateCodeTeamReq struct {
