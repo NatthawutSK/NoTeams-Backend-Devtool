@@ -30,6 +30,7 @@ type GetTeamByUserIdRes struct {
 
 type GetMemberTeamRes struct {
 	MemberId string `json:"member_id" db:"member_id"`
+	UserId   string `json:"user_id" db:"user_id"`
 	Username string `json:"username" db:"username"`
 	Email    string `json:"email" db:"email"`
 	Role     string `json:"role" db:"role"`

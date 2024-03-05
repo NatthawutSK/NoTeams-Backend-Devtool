@@ -304,6 +304,7 @@ func (r *teamRepository) GetMemberTeam(teamId string) ([]*team.GetMemberTeamRes,
 	query := `
 	SELECT
 		"tm"."member_id",
+		"u"."user_id",
 		"u"."username",
 		"u"."email",
 		"tm"."role"
