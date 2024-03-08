@@ -2,7 +2,7 @@ version: "3.8"
 services:
   backend:
     container_name: backend-server
-    image: fixfireza/noteams-backend-devtool:2.0
+    image: fixfireza/noteams-backend-devtool:latest
     build:
       context: .
       dockerfile: Dockerfile

@@ -1,41 +1,38 @@
 pipeline {
     agent any
-        environment {
-            DOCKER_CONTAINER_NAME_BACKEND = "backend-server"
-            DOCKER_IMAGE_NAME_BACKEND     = "fixfireza/noteams-backend-devtool:2.0"
+
+    environment {
+        // It's good practice to keep sensitive or specific data like Docker images, remote hosts, and credentials out of the script for security and flexibility.
+        DOCKER_IMAGE    = 'fixfireza/noteams-backend-devtool:latest' // Ensure this Docker image name is correct and accessible.
+        REMOTE_HOST     = 'fixfire@35.187.255.124' // Replace with your actual username and remote IP.
+        SSH_CREDENTIALS = 'ssh' // Use the ID of the Jenkins stored SSH credentials XD555.
+        CONTAINER_NAME  = 'backend-server' // Replace with your actual container name.
+    }
+
+    stages {
+        stage('Login to Docker Hub') {
+            steps {
+                // This step logs into Docker Hub using credentials stored in Jenkins.
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USER')]) {
+                    sh 'echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USER --password-stdin'
+                }
+            }
         }
 
-
-        stages {
-            stage('Initialize Stage') {
-                steps {
-                    echo 'we are initializing bro ;-;'
-                    echo 'Initial : Delete containers and images'
-                    sh 'docker stop ${DOCKER_CONTAINER_NAME_BACKEND} || true'
-                    sh 'docker rm ${DOCKER_CONTAINER_NAME_BACKEND} || true'
-                    sh 'docker rmi ${DOCKER_IMAGE_NAME_BACKEND} || true'
+        stage('Run Docker on Remote Server') {
+            steps {
+                // Uses the SSH Agent plugin to setup SSH credentials.
+                sshagent([SSH_CREDENTIALS]) {
+                    // These commands manage Docker containers on the remote server.
+                    // It stops and removes all containers, then removes all images, before running a new container.
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker ps -q | xargs -r docker stop'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker ps -a -q | xargs -r docker rm'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker images -q | xargs -r docker rmi -f'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker pull $DOCKER_IMAGE'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker run -d --name $CONTAINER_NAME -p 3000:3000 -v ~/.config/gcloud:/root/.config/gcloud $DOCKER_IMAGE'"
+                    sh "ssh -o StrictHostKeyChecking=no $REMOTE_HOST 'docker ps -a'"
                 }
             }
-
-            stage('Pull Stage') {
-                steps {
-                    echo 'we are pulling image bro ;-;'
-                    dir('Noteams') {
-                        echo "Current path is ${pwd()}"
-                        sh "docker pull ${DOCKER_IMAGE_NAME_BACKEND}"
-                    }
-                }
-            }
-
-            stage('Run Stage') {
-                steps {
-                echo 'we are running the image that i just pulled bro ;-;'
-                    dir('Noteams') {
-                        echo "Current path is ${pwd()}"
-                        sh "docker run --name ${DOCKER_CONTAINER_NAME_BACKEND} -d -p 3000:3000 -v ~/.config/gcloud:/root/.config/gcloud ${DOCKER_IMAGE_NAME_BACKEND}"
-                    }
-                }
-            }
-        
         }
+    }
 }

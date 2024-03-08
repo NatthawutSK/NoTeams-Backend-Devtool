@@ -4,39 +4,34 @@ pipeline {
         stages {
             stage('Initialization Stage') {
                 steps {
-                    echo 'we are initializing bro ;-;'
+                    echo 'we are initializing kub'
                     echo 'Initial : Delete containers and images'
-                     dir('Noteams') {
-                        sh 'docker system prune -a'
-                        sh 'docker compose down --rmi all --volumes || true'
-                     }
+                    sh 'docker system prune -a'
+                    sh 'docker compose down --rmi all --volumes || true'
+                     
                 }
             }
 
             stage('Building Stage'){
                 steps {
-                    echo 'we are building bro ;-;'
-                    dir('Noteams') {
-
-                        sh "docker compose build"
-                    }
+                    echo 'we are building kub'
+                    sh "docker compose build"
+                    
                 }
             }
 
             stage('Pushing Stage'){
                 steps {
-                    echo 'we are pushing bro ;-;'
-                    dir('Noteams') {
+                    echo 'we are pushing kub'
                         withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                             sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                         }
-                        sh 'docker push fixfireza/noteams-backend-devtool:2.0'
-                    }
+                        sh 'docker push fixfireza/noteams-backend-devtool:latest'
                 }
             }
             stage('Trigger to slave job'){
                 steps {
-                    build job: 'SlaveJob'
+                    build job: 'SlaveBE'
                 }
             }
         }
