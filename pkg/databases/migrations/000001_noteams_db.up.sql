@@ -28,7 +28,7 @@ CREATE TABLE "User" (
   "dob" VARCHAR NOT NULL,
   "phone" VARCHAR UNIQUE NOT NULL,
   "bio" TEXT,
-  "avatar" VARCHAR DEFAULT '',
+  "avatar" VARCHAR DEFAULT 'https://www.seekpng.com/png/detail/41-410093_circled-user-icon-user-profile-icon-png.png',
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );
@@ -47,7 +47,7 @@ CREATE TABLE "Team" (
   "team_name" VARCHAR NOT NULL,
   "team_desc" TEXT NOT NULL,
   "team_code" VARCHAR UNIQUE NOT NULL,
-  "team_poster" VARCHAR DEFAULT '',
+  "team_poster" VARCHAR DEFAULT 'https://icons.veryicon.com/png/o/miscellaneous/site-icon-library/team-28.png',
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );
