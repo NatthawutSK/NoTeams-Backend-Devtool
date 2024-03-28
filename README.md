@@ -13,7 +13,7 @@ This is a web-based project management tool that allows users to create teams, m
 
 # Technology Stack
 - Golang (GoFiber)
-- Google Service such as Cloud SQL, Cloud Storage, Compute Engine
+- Google Cloud Service such as Cloud SQL, Cloud Storage, Compute Engine
 - Jenkins
 
 ## Demo
